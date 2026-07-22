@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+
+    <!-- Official multi-color Google Drive logo (same artwork as the in-app
+         Settings icon, see icons/GoogleDriveIcon.kt). Drawn in the logo's
+         native 87.3 x 78 space, then scaled and centred inside the
+         adaptive-icon safe zone. -->
+    <group
+        android:scaleX="0.64"
+        android:scaleY="0.64"
+        android:translateX="26"
+        android:translateY="29">
+
+        <!-- Blue base (left) -->
+        <path
+            android:fillColor="#FF0066DA"
+            android:pathData="M6.6,66.85 l3.85,6.65 c0.8,1.4,1.95,2.5,3.3,3.3 l13.75,-23.8 h-27.5 c0,1.55,0.4,3.1,1.2,4.5 z" />
+
+        <!-- Green (left face) -->
+        <path
+            android:fillColor="#FF00AC47"
+            android:pathData="M43.65,25 l-13.75,-23.8 c-1.35,0.8,-2.5,1.9,-3.3,3.3 l-25.4,44 a9.06,9.06,0,0,0,-1.2,4.5 h27.5 z" />
+
+        <!-- Red (right tip) -->
+        <path
+            android:fillColor="#FFEA4335"
+            android:pathData="M73.55,76.8 c1.35,-0.8,2.5,-1.9,3.3,-3.3 l1.6,-2.75 l7.65,-13.25 c0.8,-1.4,1.2,-2.95,1.2,-4.5 h-27.502 l5.852,11.5 z" />
+
+        <!-- Dark green (top-left fold) -->
+        <path
+            android:fillColor="#FF00832D"
+            android:pathData="M43.65,25 l13.75,-23.8 c-1.35,-0.8,-2.9,-1.2,-4.5,-1.2 h-18.5 c-1.6,0,-3.15,0.45,-4.5,1.2 z" />
+
+        <!-- Light blue (bottom face) -->
+        <path
+            android:fillColor="#FF2684FC"
+            android:pathData="M59.8,53 h-32.3 l-13.75,23.8 c1.35,0.8,2.9,1.2,4.5,1.2 h50.8 c1.6,0,3.15,-0.45,4.5,-1.2 z" />
+
+        <!-- Yellow (right face) -->
+        <path
+            android:fillColor="#FFFFBA00"
+            android:pathData="M73.4,26.5 l-12.7,-22 c-0.8,-1.4,-1.95,-2.5,-3.3,-3.3 l-13.75,23.8 l16.15,28 h27.45 c0,-1.55,-0.4,-3.1,-1.2,-4.5 z" />
+    </group>
+</vector>

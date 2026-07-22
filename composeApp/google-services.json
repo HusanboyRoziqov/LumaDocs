@@ -1,0 +1,55 @@
+{
+  "project_info": {
+    "project_number": "13654041703",
+    "project_id": "luma-docs-22722",
+    "storage_bucket": "luma-docs-22722.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:13654041703:android:cdc1ad902b607a62b260c2",
+        "android_client_info": {
+          "package_name": "app.lumadocs.kmp"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "13654041703-1rbhl9r4iuhkack7s3hvvnes67u2vv52.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "app.lumadocs.kmp",
+            "certificate_hash": "37313e254926998ef274fd4d79adbb6896b4cd34"
+          }
+        },
+        {
+          "client_id": "13654041703-k9d0cpsf4o6p300osedfi0hnqh6ed4tf.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "app.lumadocs.kmp",
+            "certificate_hash": "427abe25ee248ae07ddd723cbac6045559053e8c"
+          }
+        },
+        {
+          "client_id": "13654041703-06heq6a3r1chibs04oevkfkrcj4lmdac.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDXIKiFutMEcG_hCefRxjbWogWx79jRFhM"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "13654041703-06heq6a3r1chibs04oevkfkrcj4lmdac.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

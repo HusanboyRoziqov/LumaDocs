@@ -1,0 +1,231 @@
+<!-- Russian strings -->
+<resources>
+    <!-- Settings -->
+    <string name="settings">Настройки</string>
+    <string name="cloud_sync">ОБЛАЧНАЯ СИНХРОНИЗАЦИЯ</string>
+    <string name="general">ОСНОВНОЕ</string>
+    <string name="security">БЕЗОПАСНОСТЬ</string>
+
+    <!-- Google Drive -->
+    <string name="google_drive">Google Drive</string>
+    <string name="connected">Подключено</string>
+    <string name="not_connected">Не подключено</string>
+    <string name="login_with_google">Войти с Google</string>
+    <string name="disconnect">Отключить</string>
+
+    <!-- Language & Theme -->
+    <string name="language">Язык</string>
+    <string name="theme">Тема</string>
+    <string name="system">Система</string>
+    <string name="light">Светлая</string>
+    <string name="dark">Тёмная</string>
+
+    <!-- Security -->
+    <string name="biometric_lock">Биометрическая блокировка</string>
+    <string name="enable_faceid">Включите FaceID для защиты ваших документов при открытии приложения.</string>
+    <string name="app_lock">Блокировка приложения</string>
+    <string name="app_lock_subtitle">Запрашивать PIN-код при каждом открытии</string>
+    <string name="pin_create_title">Создайте PIN-код</string>
+    <string name="pin_confirm_title">Подтвердите PIN-код</string>
+    <string name="pin_enter_title">Введите PIN-код</string>
+    <string name="pin_create_subtitle">Установите 4-значный PIN-код для блокировки</string>
+    <string name="pin_confirm_subtitle">Введите PIN-код ещё раз для подтверждения</string>
+    <string name="pin_enter_subtitle">Введите PIN-код, чтобы разблокировать LumaDocs</string>
+    <string name="pin_mismatch">PIN-коды не совпадают. Попробуйте снова.</string>
+    <string name="pin_wrong">Неверный PIN-код. Попробуйте снова.</string>
+    <string name="change_pin">Изменить PIN-код</string>
+    <string name="pin_verify_title">Подтвердите личность</string>
+    <string name="pin_verify_set">Подтвердите через Google, чтобы установить PIN-код.</string>
+    <string name="pin_verify_change">Подтвердите через Google, чтобы изменить PIN-код.</string>
+    <string name="pin_verify_remove">Подтвердите через Google, чтобы удалить PIN-код.</string>
+    <string name="verify_with_google">Продолжить с Google</string>
+    <string name="pin_created">PIN-код установлен</string>
+    <string name="pin_changed">PIN-код изменён</string>
+    <string name="pin_removed">PIN-код удалён</string>
+
+    <!-- Start Screen -->
+    <string name="sync_across_devices">Синхронизация на всех устройствах</string>
+    <string name="sync_description">Подключите защищённый диск для доступа к зашифрованному хранилищу со всего мира.</string>
+    <string name="end_to_end_encryption">Сквозное шифрование</string>
+    <string name="real_time_cloud_backup">Резервная копия в облаке в реальном времени</string>
+    <string name="continue_with_google">Продолжить с Google</string>
+    <string name="continue_as_guest">Продолжить как гость</string>
+    <string name="terms">Условия</string>
+    <string name="privacy_policy">Политика конфиденциальности</string>
+    <string name="agreement">Продолжая, вы соглашаетесь с нашими </string>
+    <string name="and"> и </string>
+
+    <!-- Onboarding Screen -->
+    <string name="your_digital_safe">Ваше цифровое хранилище</string>
+    <string name="digital_safe_description">Безопасно храните паспорта, визы\nи удостоверения личности в одном защищённом хранилище.</string>
+    <string name="everything_in_one_place">Всё в\nодном месте</string>
+    <string name="documents_organized">Организуйте ваши документы\nи получайте доступ отовсюду.</string>
+    <string name="get_started">Начать</string>
+    <string name="skip_intro">Пропустить введение</string>
+    <string name="next">Далее</string>
+
+    <!-- Documents Screen -->
+    <string name="documents">Документы</string>
+    <string name="add_document">Добавить документ</string>
+    <string name="add">Добавить</string>
+    <string name="search_documents">Поиск документов...</string>
+    <string name="no_documents">Документов еще нет</string>
+    <string name="created_at">Создано:</string>
+    <string name="delete">Удалить</string>
+    <string name="edit">Редактировать</string>
+    <string name="cancel">Отмена</string>
+    <string name="confirm">Подтвердить</string>
+    <string name="ok">ОК</string>
+    <string name="error">Ошибка</string>
+    <string name="success">Успешно</string>
+    <string name="loading">Загрузка...</string>
+    <string name="logout">Выйти</string>
+    <string name="search_files">Поиск файлов...</string>
+    <string name="close">Закрывать</string>
+    <string name="not_found_files">Файлы не найдены</string>
+    <string name="upload_first_image">Загрузите свой первый документ или изображение, чтобы начать</string>
+
+    <string name="all">Все</string>
+    <string name="identity">Личность</string>
+    <string name="travel">Путешествовать</string>
+    <string name="medical">Медицинский</string>
+    <string name="sorted_by_data">Отсортировано по дате</string>
+    <string name="files">Файлы</string>
+
+
+    <!-- Home Screen -->
+    <string name="home">Главная</string>
+    <string name="uploads">Загрузки</string>
+    <string name="my_files">Мои файлы</string>
+    <string name="upload">Загрузить</string>
+    <string name="document_title">Название документа</string>
+    <string name="document_description">Описание (опционально)</string>
+    <string name="save">Сохранить</string>
+    <string name="file_name">Имя файла</string>
+    <string name="file_type">Тип файла</string>
+    <string name="upload_file">Загрузить файл</string>
+
+    <!--    Add Screen -->
+    <string name="add_document_title">Введите название документа</string>
+    <string name="document_category">Категория</string>
+    <string name="menu_general">Общий</string>
+    <string name="menu_finance">Финансы</string>
+    <string name="uploading">Загрузка...</string>
+    <string name="upload_document">Загрузить документ</string>
+    <string name="select_image">Нажмите, чтобы выбрать изображение</string>
+    <string name="tap_to_browse_photos">Нажмите для выбора фото</string>
+    <string name="gallery_title">Галерея</string>
+    <string name="file_label">Файл</string>
+    <string name="allow_photo_access">Разрешите доступ к фотографиям, чтобы выбрать из галереи</string>
+    <string name="grant_access">Разрешить доступ</string>
+    <string name="no_photos_found">Фотографии не найдены</string>
+    <string name="select_more_photos">Ещё</string>
+    <string name="add_selected_count">Добавить %1$d</string>
+    <string name="photos_count">Фото (%1$d)</string>
+    <string name="crop">Обрезать</string>
+    <string name="send_count">Отправить %1$d</string>
+    <string name="folder_name">Название папки</string>
+    <string name="folder_name_hint">Введите название папки</string>
+    <string name="dark_mode">Тёмная тема</string>
+    <string name="connection_banner">Баннер соединения</string>
+    <string name="connect_drive_title">Подключите Google Drive</string>
+    <string name="connect_drive_message">Войдите в Google Drive в настройках, чтобы загружать и сохранять документы.</string>
+    <string name="go_to_settings">Открыть настройки</string>
+
+    <!-- User-facing error messages -->
+    <string name="error_generic">Что-то пошло не так. Попробуйте ещё раз.</string>
+    <string name="error_sign_in_failed">Не удалось войти. Попробуйте ещё раз.</string>
+    <string name="error_no_google_account">На этом устройстве не найден аккаунт Google.</string>
+    <string name="error_drive_access">Не удалось подключиться к Google Drive. Переподключитесь в настройках.</string>
+    <string name="error_upload_failed">Не удалось загрузить файл. Попробуйте ещё раз.</string>
+    <string name="error_load_failed">Не удалось загрузить документы. Попробуйте ещё раз.</string>
+    <string name="error_delete_failed">Не удалось удалить файл. Попробуйте ещё раз.</string>
+    <string name="error_preview_failed">Не удалось открыть этот файл. Попробуйте ещё раз.</string>
+    <string name="error_folder_create_failed">Не удалось создать папку. Попробуйте ещё раз.</string>
+    <string name="error_no_files_selected">Выберите хотя бы один файл.</string>
+    <string name="error_name_required">Введите название.</string>
+    <string name="error_folder_required">Введите название папки.</string>
+    <string name="error_disconnect_failed">Не удалось отключиться. Попробуйте ещё раз.</string>
+    <string name="error_folder_not_found">Папка LumaDocs не найдена на Drive.</string>
+    <string name="error_no_files_export">Нет файлов для экспорта.</string>
+    <string name="error_backup_invalid">Недействительный файл резервной копии.</string>
+    <string name="error_backup_empty">Резервная копия пуста.</string>
+    <string name="error_export_failed">Не удалось экспортировать. Попробуйте ещё раз.</string>
+    <string name="error_import_failed">Не удалось импортировать. Попробуйте ещё раз.</string>
+    <string name="delete_confirm_title">Удалить файл?</string>
+    <string name="delete_confirm_message">Файл будет навсегда удалён из вашего Drive.</string>
+    <string name="file_deleted">Файл удалён</string>
+    <string name="no_internet">Нет подключения к интернету</string>
+    <string name="refreshing">Обновление…</string>
+    <string name="section_details">Детали</string>
+    <string name="field_title">Название</string>
+    <string name="field_description_label">Описание</string>
+    <string name="section_options">Параметры</string>
+    <string name="encrypt_files">Шифровать файлы</string>
+    <string name="encrypt_subtitle">AES-шифрование перед загрузкой</string>
+    <string name="section_expiry_date">Срок действия</string>
+    <string name="set_expiry_date">Установить срок действия</string>
+    <string name="expiry_optional_hint">Необязательно — уведомление до истечения срока</string>
+    <string name="tap_to_pick_date">Нажмите, чтобы выбрать дату</string>
+    <string name="reminders_info">Напоминания: за 1 месяц · 1 неделю · 1 день до, и дважды в день истечения.</string>
+
+    <!-- Sort -->
+    <string name="sort_by">Сортировать по</string>
+    <string name="sort_newest_first">Сначала новые</string>
+    <string name="sort_oldest_first">Сначала старые</string>
+    <string name="sort_name_az">Название А→Я</string>
+    <string name="sort_name_za">Название Я→А</string>
+    <string name="sort_date_desc_sub">По дате загрузки ↓</string>
+    <string name="sort_date_asc_sub">По дате загрузки ↑</string>
+    <string name="sort_alpha_asc">По алфавиту ↑</string>
+    <string name="sort_alpha_desc">По алфавиту ↓</string>
+
+    <!-- Settings -->
+    <string name="backup_restore">Резервная копия и восстановление</string>
+    <string name="backup_description">Экспортируйте все файлы в зашифрованную резервную копию для отправки через Telegram или любой мессенджер. Импортируйте для восстановления файлов на Drive.</string>
+    <string name="export_all_files">Экспортировать все файлы</string>
+    <string name="import_backup">Импортировать резервную копию</string>
+    <string name="percent_downloaded">%1$d%% загружено</string>
+    <string name="files_uploaded">%1$d файлов загружено…</string>
+    <string name="files_added">%1$d файлов добавлено в LumaDocs</string>
+    <string name="upload_success">Загружено файлов: %1$d</string>
+    <string name="upload_success_encrypted">Загружено и зашифровано файлов: %1$d</string>
+    <string name="duplicates_skipped">%1$d дубликатов пропущено</string>
+    <string name="filters_label">Фильтры</string>
+    <string name="new_category">Новая категория</string>
+    <string name="edit_category">Изменить категорию</string>
+    <string name="category_name_hint">Название категории</string>
+
+    <!-- Backup importer -->
+    <string name="importing_backup">Импорт резервной копии…</string>
+    <string name="import_complete">Импорт завершён!</string>
+    <string name="import_failed">Ошибка импорта</string>
+    <string name="done">Готово</string>
+    <string name="retry">Повторить</string>
+    <string name="unknown_error">Неизвестная ошибка</string>
+
+    <!-- Backup preview / selection -->
+    <string name="export_confirm_title">Экспортировать файлы?</string>
+    <string name="export_confirm_message">Вы сможете просмотреть и выбрать файлы для резервной копии.</string>
+    <string name="yes">Да</string>
+    <string name="no">Нет</string>
+    <string name="clear_sessions_title">Очистить все сеансы?</string>
+    <string name="clear_sessions_message">Вы выйдете из аккаунта, будут очищены все сеансы, кэш файлов и блокировка приложения (PIN). Это действие нельзя отменить.</string>
+    <string name="clear_sessions_confirm">Очистить всё</string>
+    <string name="select_files_to_export">Выберите файлы для экспорта</string>
+    <string name="select_files_to_import">Выберите файлы для импорта</string>
+    <string name="select_all">Выбрать все</string>
+    <string name="deselect_all">Снять выбор</string>
+    <string name="files_selected">Выбрано %1$d из %2$d</string>
+    <string name="export_count">Экспорт %1$d</string>
+    <string name="import_count">Импорт %1$d</string>
+    <string name="loading_files">Загрузка файлов…</string>
+    <string name="reading_backup">Чтение копии…</string>
+    <string name="opening_file">Открытие…</string>
+    <string name="exporting">Экспорт…</string>
+
+    <!-- Document detail -->
+    <string name="document_label">Документ</string>
+    <string name="field_name">Название</string>
+</resources>
+

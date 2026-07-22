@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Monochrome LumaDocs logo for the notification status bar.
+     Small icons are flattened to their alpha channel, so this is a solid
+     white silhouette of the Drive-style triangle, scaled into a 24dp canvas. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp"
+    android:height="24dp"
+    android:viewportWidth="24"
+    android:viewportHeight="24">
+
+    <group
+        android:scaleX="0.27"
+        android:scaleY="0.27"
+        android:translateX="0.1"
+        android:translateY="1.5">
+
+        <!-- Left face -->
+        <path
+            android:fillColor="#FFFFFFFF"
+            android:pathData="M44,2 L44,50 L22,50 Z" />
+
+        <!-- Right face -->
+        <path
+            android:fillColor="#FFFFFFFF"
+            android:pathData="M44,2 L44,50 L66,50 Z" />
+
+        <!-- Bottom band -->
+        <path
+            android:fillColor="#FFFFFFFF"
+            android:pathData="M22,50 L66,50 L78,76 L10,76 Z" />
+    </group>
+</vector>
