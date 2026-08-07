@@ -47,14 +47,23 @@ fun DocumentDetailRoute(
         viewModel.loadPreview()
     }
 
+    // Pull every page's full-quality bytes into the disk cache so the pager renders real photos
+    // (Drive thumbnails are ~220px and expire) and keeps showing them offline.
+    LaunchedEffect(pages) { viewModel.ensureCached(pages) }
+
     val currentFile by viewModel.file.collectAsState()
     val displayFile = currentFile ?: file
 
+    val localPaths by viewModel.localPaths.collectAsState()
     val previewBytes by viewModel.previewBytes.collectAsState()
     val isLoadingPreview by viewModel.isLoading.collectAsState()
     val isSaving by viewModel.isSaving.collectAsState()
-    val previewBitmap by produceState<ImageBitmap?>(null, previewBytes) {
-        value = previewBytes?.let { bytes ->
+    // Only decode in-process when the page isn't already on disk: Coil decodes the cached file
+    // downsampled to the box, while decodeImageBitmap builds a full-size bitmap (tens of MB for a
+    // phone photo). The bitmap stays as the fallback for the brief window before the cache lands.
+    val hasCachedFile = localPaths.containsKey(displayFile.id)
+    val previewBitmap by produceState<ImageBitmap?>(null, previewBytes, hasCachedFile) {
+        value = if (hasCachedFile) null else previewBytes?.let { bytes ->
             withContext(Dispatchers.Default) { decodeImageBitmap(bytes) }
         }
     }
@@ -63,6 +72,7 @@ fun DocumentDetailRoute(
         file = displayFile,
         previewBitmap = previewBitmap,
         pages = pages,
+        localPaths = localPaths,
         isLoadingPreview = isLoadingPreview,
         isSaving = isSaving,
         onBack = onClose,

@@ -4,6 +4,9 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.rememberTransformableState
+import androidx.compose.foundation.gestures.transformable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -50,6 +53,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.SolidColor
@@ -61,8 +65,9 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.window.Dialog
+import androidx.compose.ui.window.DialogProperties
 import app.lumadocs.kmp.icons.LumaIcons
-import app.lumadocs.kmp.platform.isOnline
 import app.lumadocs.kmp.platform.rememberNotificationPermissionLauncher
 import app.lumadocs.kmp.services.DriveFile
 import app.lumadocs.kmp.theme.LocalLumaColors
@@ -77,7 +82,11 @@ import app.lumadocs.kmp.ui.categoryOf
 import app.lumadocs.kmp.ui.expiryDaysOf
 import app.lumadocs.kmp.ui.formatExpiry
 import app.lumadocs.kmp.ui.formatSize
+import app.lumadocs.kmp.ui.sizedThumb
 import coil3.compose.AsyncImage
+import coil3.compose.LocalPlatformContext
+import coil3.request.ImageRequest
+import okio.Path.Companion.toPath
 import kotlinx.datetime.atStartOfDayIn
 import kotlinx.datetime.toLocalDateTime
 
@@ -91,6 +100,7 @@ fun DocumentInfoScreen(
     file: DriveFile,
     previewBitmap: ImageBitmap?,
     pages: List<DriveFile> = listOf(file),
+    localPaths: Map<String, String> = emptyMap(),
     isLoadingPreview: Boolean = false,
     isSaving: Boolean = false,
     onBack: () -> Unit,
@@ -105,15 +115,20 @@ fun DocumentInfoScreen(
     var showDeleteConfirm by remember { mutableStateOf(false) }
 
     val mimeLabel = remember(file.mimeType) { getMimeTypeLabel(file.mimeType) }
-    val isImage = file.mimeType.startsWith("image/")
     val days = expiryDaysOf(file)
     // Images to page through when the document was uploaded as a folder of pages.
     val imagePages = remember(pages) {
         pages.filter { it.mimeType.startsWith("image/") }.ifEmpty { listOf(file) }
     }
     val pagerState = rememberPagerState { imagePages.size }
-    // The page the user is currently viewing — what "Open" acts on.
+    // The page the user is currently viewing — what share/open act on.
     val currentFile = imagePages.getOrNull(pagerState.currentPage) ?: file
+    // Images open in the app's own viewer; anything else (PDF, docs) still hands off externally.
+    var viewerPage by remember { mutableStateOf<Int?>(null) }
+    val openCurrent = {
+        if (currentFile.mimeType.startsWith("image/")) viewerPage = pagerState.currentPage
+        else onOpen(currentFile)
+    }
 
     var saveInFlight by remember { mutableStateOf(false) }
     LaunchedEffect(isSaving) { if (saveInFlight && !isSaving) { saveInFlight = false; showEdit = false } }
@@ -136,22 +151,19 @@ fun DocumentInfoScreen(
                 contentAlignment = Alignment.Center,
             ) {
                 Box(
-                    Modifier.fillMaxWidth().aspectRatio(0.82f).clip(RoundedCornerShape(20.dp)).background(c.bg2).clickable { onOpen(currentFile) },
+                    Modifier.fillMaxWidth().aspectRatio(0.82f).clip(RoundedCornerShape(20.dp)).background(c.bg2).clickable { openCurrent() },
                     contentAlignment = Alignment.Center,
                 ) {
                     if (imagePages.size > 1) {
                         // Swipeable pager over each page/image in the folder.
                         HorizontalPager(state = pagerState, modifier = Modifier.fillMaxSize()) { page ->
                             val pf = imagePages[page]
-                            when {
-                                pf.id == file.id && previewBitmap != null ->
-                                    Image(previewBitmap, null, Modifier.fillMaxSize(), contentScale = ContentScale.Crop)
-                                !pf.thumbnailLink.isNullOrBlank() && isOnline() ->
-                                    AsyncImage(model = pf.thumbnailLink, contentDescription = null, modifier = Modifier.fillMaxSize(), contentScale = ContentScale.Crop)
-                                else -> Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                                    Icon(fileTypeIcon(mimeLabel), null, tint = c.textMute, modifier = Modifier.size(72.dp))
-                                }
-                            }
+                            PageImage(
+                                page = pf,
+                                localPath = localPaths[pf.id],
+                                fallbackBitmap = previewBitmap.takeIf { pf.id == file.id },
+                                mimeLabel = mimeLabel,
+                            )
                         }
                         // Page counter
                         Box(Modifier.align(Alignment.TopEnd).padding(12.dp).clip(RoundedCornerShape(999.dp)).background(Color(0xB3000000)).padding(horizontal = 10.dp, vertical = 5.dp)) {
@@ -164,20 +176,13 @@ fun DocumentInfoScreen(
                             }
                         }
                     } else {
-                        when {
-                            previewBitmap != null -> Image(previewBitmap, null, Modifier.fillMaxSize(), contentScale = ContentScale.Crop)
-                            isLoadingPreview -> CircularProgressIndicator(color = c.accent, strokeWidth = 2.dp, modifier = Modifier.size(28.dp))
-                            file.thumbnailLink != null && isOnline() -> AsyncImage(model = file.thumbnailLink, contentDescription = null, modifier = Modifier.fillMaxSize(), contentScale = ContentScale.Crop)
-                            else -> Icon(fileTypeIcon(mimeLabel), null, tint = c.textMute, modifier = Modifier.size(72.dp))
-                        }
-                    }
-                    // Open pill
-                    Row(
-                        Modifier.align(Alignment.BottomEnd).padding(12.dp).clip(RoundedCornerShape(999.dp)).background(Color(0xB3000000)).border(1.dp, c.hairline2, RoundedCornerShape(999.dp)).clickable { onOpen(currentFile) }.padding(horizontal = 12.dp, vertical = 7.dp),
-                        verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(5.dp),
-                    ) {
-                        Icon(LumaIcons.Eye, null, tint = Color.White, modifier = Modifier.size(14.dp))
-                        Text("Open", fontFamily = LumaUi, fontSize = 12.sp, color = Color.White, fontWeight = FontWeight.Medium)
+                        PageImage(
+                            page = file,
+                            localPath = localPaths[file.id],
+                            fallbackBitmap = previewBitmap,
+                            mimeLabel = mimeLabel,
+                            isLoading = isLoadingPreview,
+                        )
                     }
                 }
             }
@@ -230,12 +235,23 @@ fun DocumentInfoScreen(
             }
 
             // Actions
+            // Tapping the preview is how you view a document now — no "Open" action needed here.
             Row(Modifier.fillMaxWidth().padding(16.dp).padding(bottom = 24.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 ActionButton(LumaIcons.Share, "Share", Modifier.weight(1f), onClick = onShare)
-                ActionButton(LumaIcons.Eye, "Open", Modifier.weight(1f), onClick = { onOpen(currentFile) })
                 ActionButton(LumaIcons.Trash, "Delete", Modifier.weight(1f), danger = true, onClick = { showDeleteConfirm = true })
             }
         }
+    }
+
+    viewerPage?.let { start ->
+        FullscreenPageViewer(
+            pages = imagePages,
+            localPaths = localPaths,
+            startPage = start,
+            fallbackBitmap = previewBitmap,
+            primaryId = file.id,
+            onDismiss = { viewerPage = null },
+        )
     }
 
     if (showEdit) {
@@ -255,6 +271,160 @@ fun DocumentInfoScreen(
             confirmButton = { TextButton(onClick = { showDeleteConfirm = false; onDelete() }) { Text("Delete", color = c.err, fontWeight = FontWeight.SemiBold) } },
             dismissButton = { TextButton(onClick = { showDeleteConfirm = false }) { Text("Cancel", color = c.textDim) } },
         )
+    }
+}
+
+/**
+ * One page of the hero preview, layered worst-to-best so the box is never empty:
+ *
+ * 1. a large (=s1600) Drive thumbnail as the instant backdrop — Coil serves it from its disk cache
+ *    on later visits, and it's keyed by file id so a rotated/expired Drive link still hits cache;
+ * 2. the full-quality bytes from [PreviewCache], decoded straight off disk by Coil (downsampled to
+ *    the box, so a 3 MB photo costs a fraction of a full-size decode);
+ * 3. an already-decoded bitmap when the ViewModel happens to hold one.
+ *
+ * Nothing here is gated on connectivity: everything cached renders offline, and the file-type icon
+ * only shows when there is genuinely no image to draw.
+ */
+@Composable
+private fun PageImage(
+    page: DriveFile,
+    localPath: String?,
+    fallbackBitmap: ImageBitmap?,
+    mimeLabel: String,
+    isLoading: Boolean = false,
+) {
+    val c = LocalLumaColors.current
+    val ctx = LocalPlatformContext.current
+
+    val thumbRequest = remember(page.id, page.thumbnailLink) {
+        if (page.thumbnailLink.isNullOrBlank()) null
+        else ImageRequest.Builder(ctx)
+            .data(sizedThumb(page.thumbnailLink, 1600))
+            .memoryCacheKey("hero_${page.id}")
+            .diskCacheKey("hero_${page.id}")
+            .placeholderMemoryCacheKey("hero_${page.id}")
+            .build()
+    }
+    val fullRequest = remember(page.id, localPath) {
+        localPath?.let {
+            ImageRequest.Builder(ctx)
+                .data(it.toPath())
+                .memoryCacheKey("full_${page.id}")
+                .placeholderMemoryCacheKey("full_${page.id}")
+                .build()
+        }
+    }
+
+    Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+        if (thumbRequest != null) {
+            AsyncImage(thumbRequest, null, Modifier.fillMaxSize(), contentScale = ContentScale.Crop)
+        }
+        when {
+            fullRequest != null ->
+                AsyncImage(fullRequest, null, Modifier.fillMaxSize(), contentScale = ContentScale.Crop)
+            fallbackBitmap != null ->
+                Image(fallbackBitmap, null, Modifier.fillMaxSize(), contentScale = ContentScale.Crop)
+            thumbRequest == null && isLoading ->
+                CircularProgressIndicator(color = c.accent, strokeWidth = 2.dp, modifier = Modifier.size(28.dp))
+            thumbRequest == null ->
+                Icon(fileTypeIcon(mimeLabel), null, tint = c.textMute, modifier = Modifier.size(72.dp))
+        }
+    }
+}
+
+/**
+ * In-app full-screen viewer: pinch/drag to zoom, swipe between the document's pages, tap or back to
+ * close. Reads the same cached files as the detail hero, so opening a photo never leaves the app
+ * (and never needs the gallery) — the external handoff is reserved for PDFs and other documents.
+ */
+@Composable
+private fun FullscreenPageViewer(
+    pages: List<DriveFile>,
+    localPaths: Map<String, String>,
+    startPage: Int,
+    fallbackBitmap: ImageBitmap?,
+    primaryId: String,
+    onDismiss: () -> Unit,
+) {
+    Dialog(onDismissRequest = onDismiss, properties = DialogProperties(usePlatformDefaultWidth = false)) {
+        val ctx = LocalPlatformContext.current
+        val pagerState = rememberPagerState(initialPage = startPage.coerceIn(0, (pages.size - 1).coerceAtLeast(0))) { pages.size }
+        var scale by remember { mutableStateOf(1f) }
+        var offsetX by remember { mutableStateOf(0f) }
+        var offsetY by remember { mutableStateOf(0f) }
+        // A new page starts unzoomed, so a swipe never lands mid-pan on the next photo.
+        LaunchedEffect(pagerState.currentPage) { scale = 1f; offsetX = 0f; offsetY = 0f }
+
+        val transformState = rememberTransformableState { zoomChange, panChange, _ ->
+            scale = (scale * zoomChange).coerceIn(1f, 5f)
+            if (scale > 1f) {
+                offsetX += panChange.x
+                offsetY += panChange.y
+            } else {
+                offsetX = 0f; offsetY = 0f
+            }
+        }
+
+        Box(Modifier.fillMaxSize().background(Color.Black), contentAlignment = Alignment.Center) {
+            // Zoomed in, horizontal drags pan the photo instead of flipping the page.
+            HorizontalPager(state = pagerState, userScrollEnabled = scale <= 1f, modifier = Modifier.fillMaxSize()) { page ->
+                val pf = pages[page]
+                val zoomed = page == pagerState.currentPage
+                val model = remember(pf.id, localPaths[pf.id], pf.thumbnailLink) {
+                    localPaths[pf.id]?.let { path ->
+                        ImageRequest.Builder(ctx).data(path.toPath())
+                            .memoryCacheKey("full_${pf.id}").placeholderMemoryCacheKey("hero_${pf.id}").build()
+                    } ?: pf.thumbnailLink?.let { link ->
+                        ImageRequest.Builder(ctx).data(sizedThumb(link, 1600))
+                            .memoryCacheKey("hero_${pf.id}").diskCacheKey("hero_${pf.id}")
+                            .placeholderMemoryCacheKey("hero_${pf.id}").build()
+                    }
+                }
+                val imageModifier = Modifier.fillMaxSize()
+                    .graphicsLayer(
+                        scaleX = if (zoomed) scale else 1f,
+                        scaleY = if (zoomed) scale else 1f,
+                        translationX = if (zoomed) offsetX else 0f,
+                        translationY = if (zoomed) offsetY else 0f,
+                    )
+                    .transformable(transformState, enabled = zoomed)
+
+                Box(
+                    Modifier.fillMaxSize().clickable(
+                        interactionSource = remember { MutableInteractionSource() },
+                        indication = null,
+                        enabled = scale <= 1f,
+                    ) { onDismiss() },
+                    contentAlignment = Alignment.Center,
+                ) {
+                    when {
+                        model != null -> AsyncImage(model, null, imageModifier, contentScale = ContentScale.Fit)
+                        pf.id == primaryId && fallbackBitmap != null ->
+                            Image(fallbackBitmap, null, imageModifier, contentScale = ContentScale.Fit)
+                        else -> CircularProgressIndicator(color = Color.White, strokeWidth = 2.dp, modifier = Modifier.size(28.dp))
+                    }
+                }
+            }
+
+            if (pages.size > 1) {
+                Box(
+                    Modifier.align(Alignment.TopStart).safeDrawingPadding().padding(16.dp)
+                        .clip(RoundedCornerShape(999.dp)).background(Color(0xB3000000))
+                        .padding(horizontal = 12.dp, vertical = 6.dp),
+                ) {
+                    Text("${pagerState.currentPage + 1} / ${pages.size}", fontFamily = LumaMono, fontSize = 12.sp, color = Color.White)
+                }
+            }
+
+            Box(
+                Modifier.align(Alignment.TopEnd).safeDrawingPadding().padding(16.dp)
+                    .size(44.dp).clip(CircleShape).background(Color(0x26FFFFFF)).clickable(onClick = onDismiss),
+                contentAlignment = Alignment.Center,
+            ) {
+                Icon(LumaIcons.Close, "Close", tint = Color.White, modifier = Modifier.size(22.dp))
+            }
+        }
     }
 }
 

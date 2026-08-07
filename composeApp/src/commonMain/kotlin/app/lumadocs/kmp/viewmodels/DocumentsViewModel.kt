@@ -17,6 +17,8 @@ import app.lumadocs.kmp.utils.ErrorMessages
 import app.lumadocs.kmp.utils.PendingUploadStore
 import app.lumadocs.kmp.utils.PreviewCache
 import app.lumadocs.kmp.utils.SecurityUtils
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.Flow
 import lumadocs.composeapp.generated.resources.Res
 import lumadocs.composeapp.generated.resources.error_load_failed
@@ -27,6 +29,7 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.flow.updateAndGet
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
@@ -98,6 +101,12 @@ class DocumentsViewModel : ViewModel(), KoinComponent {
 
     private val query =
         "mimeType contains 'image/' or mimeType='application/pdf' or mimeType='application/vnd.openxmlformats-officedocument'"
+
+    /** Newest prefetch pass wins — a refresh shouldn't race an in-flight one. */
+    private var prefetchJob: Job? = null
+
+    /** Cap the warm-up at the cache's LRU capacity so a pass can't evict its own earlier writes. */
+    private val MAX_PREFETCH = 60
 
     private val cacheKey = stringPreferencesKey("docs_cache_v1")
     private val json = Json { ignoreUnknownKeys = true }
@@ -177,7 +186,7 @@ class DocumentsViewModel : ViewModel(), KoinComponent {
                         folderNames = cached.folderNames,
                     )
                 }
-                if (isOnline()) prefetchImagePreviews(cached.display)
+                prefetchImagePreviews(cached)
             } else if (isOnline()) {
                 fetchAllFiles()
             } else {
@@ -192,12 +201,26 @@ class DocumentsViewModel : ViewModel(), KoinComponent {
         }
     }
 
-    /** Downloads and caches the first few image previews so the detail screen works offline. */
-    private fun prefetchImagePreviews(files: List<DriveFile>) {
-        viewModelScope.launch {
-            val images = files.filter { it.mimeType.startsWith("image/") }.take(10)
-            for (f in images) {
-                if (PreviewCache.get(dataStore, f.id) != null) continue
+    /**
+     * Warms the on-disk cache with the real bytes of every document — including the pages inside
+     * folders, which the display list only represents by their first file. Once cached, list
+     * thumbnails and the detail pager render from disk at full quality and keep working offline,
+     * instead of re-fetching Drive's low-res (and short-lived) thumbnail links.
+     *
+     * Files larger than the cache's per-file ceiling are skipped up front, using the size Drive
+     * already reported, so we never download something we'd only throw away.
+     */
+    private fun prefetchImagePreviews(grouped: GroupedFiles) {
+        prefetchJob?.cancel()
+        prefetchJob = viewModelScope.launch {
+            if (!isOnline()) return@launch
+            val targets = (grouped.display + grouped.folderContents.values.flatten())
+                .distinctBy { it.id }
+                .filter { (it.size ?: 0L) <= PreviewCache.MAX_BYTES }
+                .take(MAX_PREFETCH)
+            for (f in targets) {
+                // Cheap existence check — don't read megabytes back just to test for a hit.
+                if (withContext(Dispatchers.Default) { PreviewCache.localPath(f.id) } != null) continue
                 val bytes = runCatching {
                     googleDriveRepository.getFileContent(f.id, isEncrypted = f.encrypted)
                 }.getOrNull()
@@ -267,7 +290,7 @@ class DocumentsViewModel : ViewModel(), KoinComponent {
                         folderNames = grouped.folderNames,
                     )
                 }
-                prefetchImagePreviews(grouped.display)
+                prefetchImagePreviews(grouped)
             } catch (e: Exception) {
                 e.printStackTrace()
                 _uiState.update {
@@ -307,7 +330,7 @@ class DocumentsViewModel : ViewModel(), KoinComponent {
                         folderNames = grouped.folderNames,
                     )
                 }
-                prefetchImagePreviews(grouped.display)
+                prefetchImagePreviews(grouped)
                 // A manual refresh while online also pushes any offline-queued documents.
                 if (pendingStore.current().isNotEmpty()) uploadPending()
             } catch (e: Exception) {

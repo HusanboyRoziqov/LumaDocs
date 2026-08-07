@@ -17,6 +17,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawingPadding
 import androidx.compose.foundation.layout.size
@@ -26,9 +27,13 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
+import androidx.compose.material3.BottomSheetDefaults
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
+import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Text
+import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -50,9 +55,12 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.window.Dialog
+import androidx.compose.ui.window.DialogProperties
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import app.lumadocs.kmp.VaultEvents
 import app.lumadocs.kmp.icons.LumaIcons
+import app.lumadocs.kmp.navigation.AppBackHandler
 import app.lumadocs.kmp.platform.InAppCameraPreview
 import app.lumadocs.kmp.platform.PickedFile
 import app.lumadocs.kmp.platform.inAppCameraSupported
@@ -66,7 +74,6 @@ import app.lumadocs.kmp.ui.CategoryChip
 import app.lumadocs.kmp.ui.DocCategory
 import app.lumadocs.kmp.ui.ExpiryDatePickerDialog
 import app.lumadocs.kmp.ui.PillButton
-import app.lumadocs.kmp.ui.PillVariant
 import app.lumadocs.kmp.ui.SectionLabel
 import app.lumadocs.kmp.ui.ThumbSize
 import app.lumadocs.kmp.utils.decodeImageBitmap
@@ -119,8 +126,29 @@ internal fun ScanScreen(
         if (!embedded) launchCamera()
     }
 
+    // Back walks the scan flow one stage back instead of dropping the whole session; on the
+    // camera stage it falls through to the nav back stack (which leaves Scan).
+    // While an upload is in flight the handler stays enabled but does nothing: leaving mid-upload
+    // would strand half a document in Drive.
+    AppBackHandler(enabled = stage == "save") {
+        if (!state.isLoading) {
+            stage = if (files.any { it.mimeType.startsWith("image/") }) "edit" else "camera"
+        }
+    }
+
+    // Set the moment an upload succeeds, so the "no pages left" rule below doesn't bounce the
+    // user through the camera on the way out.
+    var leaving by remember { mutableStateOf(false) }
+
+    // Removing the last page leaves nothing to save — drop back to the camera instead of
+    // stranding the user on an empty form.
+    LaunchedEffect(stage, files.isEmpty(), state.isLoading, leaving) {
+        if (stage == "save" && files.isEmpty() && !state.isLoading && !leaving) stage = "camera"
+    }
+
     LaunchedEffect(state.successMessage) {
         if (state.successMessage != null) {
+            leaving = true
             VaultEvents.requestRefresh()
             vm.resetState()
             onSaved()
@@ -147,11 +175,16 @@ internal fun ScanScreen(
             category = category,
             onCategory = { category = it },
             isSaving = state.isLoading,
+            uploadedCount = state.uploadedCount,
+            totalCount = state.totalCount,
             needsDrive = state.needsGoogleDriveConnection,
             onDismissDrive = { vm.dismissConnectPrompt() },
             onRetake = { stage = "camera" },
-            onAddImages = launchGallery,
+            onAddFromGallery = launchGallery,
+            // "Take a photo" walks back to the capture stage, exactly like Retake.
+            onAddFromCamera = { stage = "camera" },
             onReview = { if (files.any { it.mimeType.startsWith("image/") }) stage = "edit" },
+            onRemove = { vm.removeFileFromList(it) },
             onSave = { name, expiry ->
                 vm.uploadMultipleFiles(
                     title = name,
@@ -265,7 +298,7 @@ private fun ScanCameraStage(
                         letterSpacing = 0.6.sp
                     )
                 }
-                // Flash toggle — torch on/off in the live preview (amber when on).
+
                 Box(
                     Modifier.size(40.dp).clip(CircleShape)
                         .background(if (flashOn) c.accent else Color(0x80000000))
@@ -395,17 +428,22 @@ private fun ScanSaveStage(
     category: DocCategory,
     onCategory: (DocCategory) -> Unit,
     isSaving: Boolean,
+    uploadedCount: Int,
+    totalCount: Int,
     needsDrive: Boolean,
     onDismissDrive: () -> Unit,
     onRetake: () -> Unit,
-    onAddImages: () -> Unit,
+    onAddFromGallery: () -> Unit,
+    onAddFromCamera: () -> Unit,
     onReview: () -> Unit,
+    onRemove: (index: Int) -> Unit,
     onSave: (name: String, expiry: String) -> Unit,
 ) {
     val c = LocalLumaColors.current
     var name by remember { mutableStateOf("") }
     var expiry by remember { mutableStateOf("") }
     var showDatePicker by remember { mutableStateOf(false) }
+    var showAddSheet by remember { mutableStateOf(false) }
     val requestNotif = rememberNotificationPermissionLauncher { }
 
     Column(Modifier.fillMaxSize().background(c.bg).safeDrawingPadding()) {
@@ -414,13 +452,14 @@ private fun ScanSaveStage(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
-            Text(
-                "← Retake",
-                color = c.textDim,
-                fontFamily = LumaUi,
-                fontSize = 15.sp,
-                modifier = Modifier.clickable(onClick = onRetake)
-            )
+            Row(
+                Modifier.clickable(onClick = onRetake),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(6.dp),
+            ) {
+                Icon(LumaIcons.Back, null, tint = c.textDim, modifier = Modifier.size(18.dp))
+                Text("Retake", color = c.textDim, fontFamily = LumaUi, fontSize = 15.sp)
+            }
             Text(
                 "New Document",
                 color = c.text,
@@ -438,14 +477,27 @@ private fun ScanSaveStage(
             LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 items(count = files.size, key = { it }) { i ->
                     val f = files[i]
-                    Box(Modifier.clickable(onClick = onReview)) {
-                        CapturedThumb(mimeType = f.mimeType, bytes = f.fileBytes)
+                    Box {
+                        Box(Modifier.clickable(onClick = onReview)) {
+                            CapturedThumb(mimeType = f.mimeType, bytes = f.fileBytes)
+                        }
+                        // Drop a page you don't want before saving.
+                        Box(
+                            Modifier.align(Alignment.TopEnd).padding(6.dp)
+                                .size(26.dp).clip(CircleShape).background(Color(0xCC000000))
+                                .clickable { onRemove(i) },
+                            contentAlignment = Alignment.Center,
+                        ) {
+                            Icon(LumaIcons.Close, "Remove page", tint = Color.White, modifier = Modifier.size(15.dp))
+                        }
                     }
                 }
+                // Adding a page lives with the pages themselves, so the bottom row is just "Save".
+                item(key = "add") { AddPageCard(onClick = { showAddSheet = true }) }
             }
             Spacer(Modifier.height(8.dp))
             Text(
-                "Tap a page to review & crop",
+                "Tap a page to review & crop · + to add another",
                 fontFamily = LumaUi,
                 fontSize = 12.sp,
                 color = c.textMute
@@ -518,19 +570,10 @@ private fun ScanSaveStage(
             }
         }
 
-        Row(
-            Modifier.fillMaxWidth().padding(20.dp),
-            horizontalArrangement = Arrangement.spacedBy(10.dp)
-        ) {
-            PillButton(
-                "Add Image",
-                onClick = onAddImages,
-                variant = PillVariant.GHOST,
-                modifier = Modifier.weight(1f)
-            )
+        Box(Modifier.fillMaxWidth().padding(20.dp)) {
             if (isSaving) {
                 Box(
-                    Modifier.weight(2f).height(52.dp).clip(RoundedCornerShape(999.dp))
+                    Modifier.fillMaxWidth().height(52.dp).clip(RoundedCornerShape(999.dp))
                         .background(c.accent), contentAlignment = Alignment.Center
                 ) {
                     CircularProgressIndicator(
@@ -544,10 +587,24 @@ private fun ScanSaveStage(
                     "Save to Vault",
                     onClick = { onSave(name.ifBlank { "Scan" }, expiry) },
                     leadingIcon = LumaIcons.Check,
-                    modifier = Modifier.weight(2f)
+                    modifier = Modifier.fillMaxWidth()
                 )
             }
         }
+    }
+
+    // Covers the whole screen while uploading: no editing, no back, no leaving half a document
+    // behind. It disappears on its own when the upload finishes and the screen navigates away.
+    if (isSaving) {
+        UploadBlockingDialog(uploadedCount = uploadedCount, totalCount = totalCount)
+    }
+
+    if (showAddSheet) {
+        AddImageSheet(
+            onGallery = { showAddSheet = false; onAddFromGallery() },
+            onCamera = { showAddSheet = false; onAddFromCamera() },
+            onDismiss = { showAddSheet = false },
+        )
     }
 
     if (showDatePicker) {
@@ -556,6 +613,129 @@ private fun ScanSaveStage(
             onPicked = { expiry = it; requestNotif(); showDatePicker = false },
             onDismiss = { showDatePicker = false },
         )
+    }
+}
+
+/**
+ * Modal, non-dismissible upload progress. Back press and outside taps are disabled, so the document
+ * can't be abandoned halfway through; the caller navigates away as soon as the upload succeeds.
+ */
+@Composable
+private fun UploadBlockingDialog(uploadedCount: Int, totalCount: Int) {
+    val c = LocalLumaColors.current
+    Dialog(
+        onDismissRequest = {},
+        properties = DialogProperties(
+            dismissOnBackPress = false,
+            dismissOnClickOutside = false,
+            usePlatformDefaultWidth = false,
+        ),
+    ) {
+        Box(Modifier.fillMaxSize().background(Color(0xCC000000)), contentAlignment = Alignment.Center) {
+            Column(
+                Modifier.padding(40.dp).clip(RoundedCornerShape(20.dp)).background(c.bg2)
+                    .border(1.dp, c.hairline, RoundedCornerShape(20.dp))
+                    .padding(horizontal = 32.dp, vertical = 28.dp),
+                horizontalAlignment = Alignment.CenterHorizontally,
+            ) {
+                CircularProgressIndicator(Modifier.size(34.dp), color = c.accent, strokeWidth = 3.dp)
+                Spacer(Modifier.height(18.dp))
+                Text(
+                    "Saving to your vault",
+                    fontFamily = LumaUi, fontSize = 15.sp, fontWeight = FontWeight.SemiBold, color = c.text,
+                )
+                Spacer(Modifier.height(6.dp))
+                Text(
+                    if (totalCount > 1) "Page ${(uploadedCount + 1).coerceAtMost(totalCount)} of $totalCount"
+                    else "Uploading…",
+                    fontFamily = LumaMono, fontSize = 12.sp, color = c.accentHi, letterSpacing = 0.4.sp,
+                )
+                Spacer(Modifier.height(14.dp))
+                Text(
+                    "Keep this screen open until it finishes.",
+                    fontFamily = LumaUi, fontSize = 12.sp, color = c.textMute,
+                )
+            }
+        }
+    }
+}
+
+/** Where the next page comes from: the photo library, or back to the camera (same as Retake). */
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun AddImageSheet(
+    onGallery: () -> Unit,
+    onCamera: () -> Unit,
+    onDismiss: () -> Unit,
+) {
+    val c = LocalLumaColors.current
+    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+    ModalBottomSheet(
+        onDismissRequest = onDismiss,
+        sheetState = sheetState,
+        containerColor = c.bg,
+        dragHandle = { BottomSheetDefaults.DragHandle(color = c.bg2) },
+    ) {
+        Column(Modifier.fillMaxWidth().navigationBarsPadding().padding(horizontal = 20.dp).padding(bottom = 24.dp)) {
+            Text(
+                "Add a page", fontFamily = LumaUi, fontSize = 15.sp,
+                fontWeight = FontWeight.SemiBold, color = c.text,
+                modifier = Modifier.padding(bottom = 16.dp),
+            )
+            AddImageOption(LumaIcons.Image, "Choose from gallery", "Pick photos already on this device", onGallery)
+            Spacer(Modifier.height(10.dp))
+            AddImageOption(LumaIcons.Camera, "Take a photo", "Open the camera and capture a new page", onCamera)
+        }
+    }
+}
+
+@Composable
+private fun AddImageOption(
+    icon: ImageVector,
+    title: String,
+    sub: String,
+    onClick: () -> Unit,
+) {
+    val c = LocalLumaColors.current
+    Row(
+        Modifier.fillMaxWidth().clip(RoundedCornerShape(14.dp)).background(c.bg2)
+            .border(1.dp, c.hairline, RoundedCornerShape(14.dp))
+            .clickable(onClick = onClick).padding(16.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(14.dp),
+    ) {
+        Box(
+            Modifier.size(38.dp).clip(RoundedCornerShape(10.dp)).background(c.accentDim),
+            contentAlignment = Alignment.Center,
+        ) { Icon(icon, null, tint = c.accent, modifier = Modifier.size(19.dp)) }
+        Column(Modifier.weight(1f)) {
+            Text(title, fontFamily = LumaUi, fontSize = 15.sp, fontWeight = FontWeight.Medium, color = c.text)
+            Text(sub, fontFamily = LumaUi, fontSize = 12.sp, color = c.textMute, modifier = Modifier.padding(top = 2.dp))
+        }
+        Icon(LumaIcons.Chevron, null, tint = c.textMute, modifier = Modifier.size(16.dp))
+    }
+}
+
+/** Dashed "+" card sitting at the end of the page strip — same footprint as a real page. */
+@Composable
+private fun AddPageCard(onClick: () -> Unit) {
+    val c = LocalLumaColors.current
+    Column(
+        Modifier.size(ThumbSize.MD.w, ThumbSize.MD.h).clip(RoundedCornerShape(10.dp))
+            .background(c.accent.copy(alpha = 0.05f))
+            .border(1.dp, c.accent.copy(alpha = 0.28f), RoundedCornerShape(10.dp))
+            .clickable(onClick = onClick),
+        verticalArrangement = Arrangement.Center,
+        horizontalAlignment = Alignment.CenterHorizontally,
+    ) {
+        Box(
+            Modifier.size(38.dp).clip(CircleShape).background(c.accentDim),
+            contentAlignment = Alignment.Center,
+        ) {
+            Icon(LumaIcons.Plus, null, tint = c.accent, modifier = Modifier.size(20.dp))
+        }
+        Spacer(Modifier.height(10.dp))
+        Text("Add Image", fontFamily = LumaUi, fontSize = 12.sp, color = c.accent)
     }
 }
 

@@ -11,10 +11,12 @@ import app.lumadocs.kmp.utils.PreviewCache
 import lumadocs.composeapp.generated.resources.Res
 import lumadocs.composeapp.generated.resources.error_delete_failed
 import lumadocs.composeapp.generated.resources.error_preview_failed
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
 
@@ -40,6 +42,15 @@ class DocumentDetailViewModel : ViewModel(), KoinComponent {
 
     private val _errorMessage = MutableStateFlow<String?>(null)
     val errorMessage: StateFlow<String?> = _errorMessage
+
+    /**
+     * fileId -> on-disk path of its cached full-quality bytes. The detail pager renders from these
+     * so every page shows the real photo (not Drive's low-res thumbnail) and keeps working offline.
+     */
+    private val _localPaths = MutableStateFlow<Map<String, String>>(emptyMap())
+    val localPaths: StateFlow<Map<String, String>> = _localPaths
+
+    private val inFlight = mutableSetOf<String>()
 
     fun setFile(driveFile: DriveFile) {
         _file.value = driveFile
@@ -121,6 +132,7 @@ class DocumentDetailViewModel : ViewModel(), KoinComponent {
             val success = googleDriveRepository.deleteFile(fileId)
             if (success) {
                 PreviewCache.remove(dataStore, fileId)
+                _localPaths.update { it - fileId }
                 _file.value = null
                 _previewBytes.value = null
             }
@@ -137,6 +149,34 @@ class DocumentDetailViewModel : ViewModel(), KoinComponent {
     fun getShareLink(): String? {
         val f = _file.value ?: return null
         return f.webContentLink ?: f.webViewLink
+    }
+
+    /**
+     * Makes sure every [pages] entry has its full-quality bytes on disk, then publishes the paths
+     * so the pager can swap the blurry thumbnail for the real image. Already-cached pages resolve
+     * without touching the network; pages are fetched one by one so a folder scan doesn't fire a
+     * burst of parallel downloads.
+     */
+    fun ensureCached(pages: List<DriveFile>) {
+        val wanted = pages.filter { it.id !in _localPaths.value && inFlight.add(it.id) }
+        if (wanted.isEmpty()) return
+        viewModelScope.launch {
+            for (page in wanted) {
+                try {
+                    val cached = withContext(Dispatchers.Default) { PreviewCache.localPath(page.id) }
+                    val path = cached ?: run {
+                        val bytes = googleDriveRepository.getFileContent(page.id, isEncrypted = page.encrypted)
+                        if (bytes != null) PreviewCache.put(dataStore, page.id, bytes)
+                        withContext(Dispatchers.Default) { PreviewCache.localPath(page.id) }
+                    }
+                    if (path != null) _localPaths.update { it + (page.id to path) }
+                } catch (e: Exception) {
+                    e.printStackTrace()
+                } finally {
+                    inFlight.remove(page.id)
+                }
+            }
+        }
     }
 
     /** Decrypted content bytes for any file (e.g. a specific page in a folder), cached on disk. */

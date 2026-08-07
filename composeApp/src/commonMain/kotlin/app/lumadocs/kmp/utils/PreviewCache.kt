@@ -4,6 +4,7 @@ import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.stringPreferencesKey
+import app.lumadocs.kmp.platform.blobPath
 import app.lumadocs.kmp.platform.deleteBlob
 import app.lumadocs.kmp.platform.readBlob
 import app.lumadocs.kmp.platform.writeBlob
@@ -21,13 +22,22 @@ import kotlinx.coroutines.withContext
  * the tiny LRU order string.
  */
 object PreviewCache {
-    private const val MAX_ENTRIES = 20
+    private const val MAX_ENTRIES = 60
     private const val MEMORY_ENTRIES = 4
-    private const val MAX_BYTES = 5 * 1024 * 1024 // don't persist very large files
+
+    /** Files bigger than this are streamed on demand instead of being kept on disk. */
+    const val MAX_BYTES = 15 * 1024 * 1024
 
     private val memory = LinkedHashMap<String, ByteArray>()
     private val orderKey = stringPreferencesKey("preview_order_v2")
     private fun blobName(id: String) = "preview_$id"
+
+    /**
+     * Absolute path of the cached full-quality bytes for [fileId], or null when not cached yet.
+     * Lets image loaders decode straight off disk (downsampled, no full-size copy in memory)
+     * instead of re-downloading a low-res Drive thumbnail.
+     */
+    fun localPath(fileId: String): String? = blobPath(blobName(fileId))
 
     suspend fun get(dataStore: DataStore<Preferences>, fileId: String): ByteArray? {
         memory[fileId]?.let { return it }

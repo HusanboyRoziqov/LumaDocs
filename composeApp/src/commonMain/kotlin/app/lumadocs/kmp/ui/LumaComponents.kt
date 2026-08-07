@@ -20,6 +20,8 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -39,9 +41,13 @@ import app.lumadocs.kmp.theme.LumaMono
 import app.lumadocs.kmp.theme.LumaUi
 import app.lumadocs.kmp.icons.LumaIcons
 import app.lumadocs.kmp.theme.LocalLumaColors
+import app.lumadocs.kmp.utils.PreviewCache
 import coil3.compose.AsyncImage
 import coil3.compose.LocalPlatformContext
 import coil3.request.ImageRequest
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
+import okio.Path.Companion.toPath
 
 // ─────────────────────────────────────────────────────────────
 // Doc thumbnail — stylized "paper" card (ports primitives.jsx DocThumb)
@@ -168,8 +174,17 @@ fun DocFileThumb(
     // Derived values are memoized so scrolling doesn't re-parse dates / rebuild brushes per frame.
     val category = remember(file.category, file.name) { categoryOf(file) }
     val expiring = remember(file.expiryDate) { (expiryDaysOf(file) ?: Int.MAX_VALUE) in 0..30 }
-    val hasThumb = !file.thumbnailLink.isNullOrBlank() && file.mimeType.startsWith("image/")
+    val isImage = file.mimeType.startsWith("image/")
     val paper = remember { Brush.linearGradient(listOf(Color(0xFFF5F1E8), Color(0xFFE8E2D4))) }
+
+    // The locally cached original, resolved off the main thread. Preferred over Drive's thumbnail:
+    // full quality, survives Drive's short-lived thumbnail links, and works offline. Coil
+    // downsamples the decode to the cell, so a multi-MB photo stays cheap. Encrypted files have no
+    // usable Drive thumbnail at all — this is the only way they ever show their real picture.
+    val cachedPath by produceState<String?>(null, file.id, isImage) {
+        value = if (isImage) withContext(Dispatchers.Default) { PreviewCache.localPath(file.id) } else null
+    }
+    val hasThumb = isImage && (cachedPath != null || !file.thumbnailLink.isNullOrBlank())
 
     val outer = if (fillWidth) modifier.fillMaxWidth().aspectRatio(size.w.value / size.h.value)
     else modifier.size(width = size.w, height = size.h)
@@ -178,16 +193,18 @@ fun DocFileThumb(
             if (hasThumb) {
                 // No isOnline() gate here: it made a blocking ConnectivityManager call per item per
                 // frame while scrolling (the flicker). Coil serves cached thumbnails offline anyway.
-                // Stable cache keys (file.id) + placeholder-from-cache mean a re-scrolled item reuses
-                // its cached bitmap instantly, with no blank frame / reload flicker.
+                // Stable cache keys + placeholder-from-cache mean a re-scrolled item reuses its
+                // cached bitmap instantly, with no blank frame / reload flicker. The key tracks the
+                // source so the small thumbnail never masks the full-quality upgrade.
                 val ctx = LocalPlatformContext.current
-                // Request a small (=s400) Drive thumbnail for list cells — faster download/decode,
-                // less flicker. Cache keys stay by file.id so re-scrolls hit cache instantly.
-                val request = remember(file.id, file.thumbnailLink) {
+                val request = remember(file.id, file.thumbnailLink, cachedPath) {
+                    val key = if (cachedPath != null) "full_${file.id}" else file.id
                     ImageRequest.Builder(ctx)
-                        .data(sizedThumb(file.thumbnailLink, 400))
-                        .memoryCacheKey(file.id)
-                        .diskCacheKey(file.id)
+                        .data(cachedPath?.toPath() ?: sizedThumb(file.thumbnailLink, 400))
+                        .memoryCacheKey(key)
+                        .diskCacheKey(key)
+                        // Placeholder always points at the thumbnail entry, so the upgrade to the
+                        // full-quality decode swaps in over the small image instead of a blank cell.
                         .placeholderMemoryCacheKey(file.id)
                         .build()
                 }
@@ -525,9 +542,18 @@ fun SettingRow(
     }
 }
 
-/** A small square "app icon" avatar used for greetings/account rows. */
+/**
+ * Round account avatar: shows the signed-in user's photo when [photoUrl] is available, otherwise
+ * falls back to their initial on the brand gradient.
+ */
 @Composable
-fun InitialAvatar(letter: String, modifier: Modifier = Modifier, sizeDp: Dp = 44.dp, fontSize: Int = 18) {
+fun InitialAvatar(
+    letter: String,
+    modifier: Modifier = Modifier,
+    sizeDp: Dp = 44.dp,
+    fontSize: Int = 18,
+    photoUrl: String? = null,
+) {
     Box(
         modifier = modifier
             .size(sizeDp)
@@ -535,11 +561,20 @@ fun InitialAvatar(letter: String, modifier: Modifier = Modifier, sizeDp: Dp = 44
             .background(Brush.linearGradient(listOf(Color(0xFFC9A870), Color(0xFF7A5F3A)))),
         contentAlignment = Alignment.Center,
     ) {
-        Text(
-            letter.take(1).uppercase(),
-            fontFamily = app.lumadocs.kmp.theme.LumaDisplay,
-            fontSize = fontSize.sp,
-            color = Color(0xFF1A1408),
-        )
+        if (!photoUrl.isNullOrBlank()) {
+            AsyncImage(
+                model = photoUrl,
+                contentDescription = null,
+                modifier = Modifier.matchParentSize(),
+                contentScale = ContentScale.Crop,
+            )
+        } else {
+            Text(
+                letter.take(1).uppercase(),
+                fontFamily = app.lumadocs.kmp.theme.LumaDisplay,
+                fontSize = fontSize.sp,
+                color = Color(0xFF1A1408),
+            )
+        }
     }
 }

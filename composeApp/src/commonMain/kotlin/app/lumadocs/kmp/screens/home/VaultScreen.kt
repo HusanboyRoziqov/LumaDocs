@@ -185,36 +185,14 @@ internal fun VaultScreen(
                     horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically,
                 ) {
                     Column {
-                        Text("MY VAULT", fontFamily = LumaMono, fontSize = 10.5.sp, fontWeight = FontWeight.Medium, color = c.textMute, letterSpacing = 1.6.sp)
+                        Text("LUMA DOCS", fontFamily = LumaMono, fontSize = 10.5.sp, fontWeight = FontWeight.Medium, color = c.textMute, letterSpacing = 1.6.sp)
                         Spacer(Modifier.height(4.dp))
                         Text(if (name != null) "$greeting," else "$greeting.", fontFamily = LumaDisplay, fontSize = 34.sp, lineHeight = 34.sp, letterSpacing = (-1).sp, color = c.text)
                         if (name != null) {
                             Text(name.replaceFirstChar { it.uppercase() } + ".", fontFamily = LumaDisplay, fontStyle = FontStyle.Italic, fontSize = 34.sp, lineHeight = 36.sp, letterSpacing = (-1).sp, color = c.text)
                         }
                     }
-                    InitialAvatar(letter = name ?: "L", sizeDp = 44.dp)
-                }
-            }
-
-            // Stats bar
-            item(span = { GridItemSpan(maxLineSpan) }) {
-                Row(
-                    Modifier
-                        .fillMaxWidth().padding(start = 20.dp, end = 20.dp, bottom = 24.dp)
-                        .clip(RoundedCornerShape(16.dp))
-                        .background(Brush.linearGradient(listOf(c.accent.copy(alpha = 0.08f), c.accent.copy(alpha = 0.02f))))
-                        .border(1.dp, c.accent.copy(alpha = 0.13f), RoundedCornerShape(16.dp))
-                        .padding(14.dp),
-                    verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(14.dp),
-                ) {
-                    Box(Modifier.size(36.dp).clip(RoundedCornerShape(10.dp)).background(Color(0x4D000000)), contentAlignment = Alignment.Center) {
-                        Icon(LumaIcons.Shield, null, tint = c.accent, modifier = Modifier.size(18.dp))
-                    }
-                    Column(Modifier.weight(1f)) {
-                        Text("Vault is encrypted & synced", fontFamily = LumaUi, fontSize = 13.sp, fontWeight = FontWeight.Medium, color = c.text)
-                        Text("${files.size} documents · ${formatSize(totalSize)}", fontFamily = LumaMono, fontSize = 11.sp, color = c.textMute, letterSpacing = 0.3.sp, modifier = Modifier.padding(top = 2.dp))
-                    }
-                    Icon(LumaIcons.Chevron, null, tint = c.textMute, modifier = Modifier.size(16.dp))
+                    InitialAvatar(letter = name ?: "L", sizeDp = 44.dp, photoUrl = user?.userPhotoUrl)
                 }
             }
 

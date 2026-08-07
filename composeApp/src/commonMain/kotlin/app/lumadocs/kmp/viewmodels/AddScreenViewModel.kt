@@ -1,11 +1,14 @@
 package app.lumadocs.kmp.viewmodels
 
+import androidx.datastore.core.DataStore
+import androidx.datastore.preferences.core.Preferences
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import app.lumadocs.kmp.Authenticator
 import app.lumadocs.kmp.platform.isOnline
 import app.lumadocs.kmp.platform.scheduleExpiryNotifications
 import app.lumadocs.kmp.services.GoogleDriveRepository
+import app.lumadocs.kmp.utils.EncryptionSettings
 import app.lumadocs.kmp.utils.ErrorMessages
 import app.lumadocs.kmp.utils.PendingUploadStore
 import app.lumadocs.kmp.utils.SecurityUtils
@@ -18,7 +21,9 @@ import lumadocs.composeapp.generated.resources.upload_success
 import lumadocs.composeapp.generated.resources.upload_success_encrypted
 import org.jetbrains.compose.resources.getString
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
@@ -56,6 +61,9 @@ data class SelectedFile(
 data class AddScreenUiState(
     val isLoading: Boolean = false,
     val uploadProgress: Int = 0,
+    /** Pages finished / total in the current upload, for the blocking progress dialog. */
+    val uploadedCount: Int = 0,
+    val totalCount: Int = 0,
     val successMessage: String? = null,
     val errorMessage: String? = null,
     val uploadedFileId: String? = null,
@@ -70,6 +78,15 @@ class AddScreenViewModel : ViewModel(), KoinComponent {
     private val googleDriveRepository: GoogleDriveRepository by inject()
     private val authenticator: Authenticator by inject()
     private val pendingStore: PendingUploadStore by inject()
+    private val dataStore: DataStore<Preferences> by inject()
+
+    /**
+     * The Settings-owned default, kept live so a file picked right after the toggle flips gets the
+     * new value. Only images are encrypted: ciphered PDFs and office files can't be handed to an
+     * external viewer, which is the only way this app can open them.
+     */
+    private val encryptByDefault = EncryptionSettings.flow(dataStore)
+        .stateIn(viewModelScope, SharingStarted.Eagerly, EncryptionSettings.DEFAULT)
 
     /** True when there is no signed-in Google account to talk to Drive. */
     private fun isSignedIn(): Boolean = authenticator.getCurrentUser() != null
@@ -104,9 +121,13 @@ class AddScreenViewModel : ViewModel(), KoinComponent {
         fileBytes: ByteArray,
     ) {
         val currentFiles = _uiState.value.selectedFiles.toMutableList()
-        currentFiles.add(SelectedFile(fileName, mimeType, fileBytes))
+        val encrypted = mimeType.startsWith("image/") && encryptByDefault.value
+        currentFiles.add(SelectedFile(fileName, mimeType, fileBytes, makeEncrypted = encrypted))
         _uiState.value = _uiState.value.copy(selectedFiles = currentFiles)
     }
+
+    /** The current Settings default — lets the add screen show its switch in the matching state. */
+    fun encryptionDefault(): Boolean = encryptByDefault.value
 
     fun updateFileDescription(description: String) {
         val currentFiles = _uiState.value.selectedFiles.toMutableList()
@@ -238,6 +259,13 @@ class AddScreenViewModel : ViewModel(), KoinComponent {
 
                 files.forEachIndexed { index, file ->
 
+                    // Report which page is in flight so the blocking upload dialog can count up.
+                    _uiState.value = _uiState.value.copy(
+                        uploadedCount = index,
+                        totalCount = files.size,
+                        uploadProgress = (index * 100) / files.size,
+                    )
+
                     val contentToUpload = if (file.makeEncrypted) SecurityUtils.encrypt(file.fileBytes) else file.fileBytes
 
                     val fileName = when {
@@ -259,6 +287,10 @@ class AddScreenViewModel : ViewModel(), KoinComponent {
 
                     if (result.success) {
                         successCount++
+                        _uiState.value = _uiState.value.copy(
+                            uploadedCount = index + 1,
+                            uploadProgress = ((index + 1) * 100) / files.size,
+                        )
 
                         if (expiryDate != null && result.fileId != null) {
                             scheduleExpiryNotifications(result.fileId, fileName, expiryDate)

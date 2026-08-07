@@ -8,7 +8,6 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -17,7 +16,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawingPadding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -26,6 +24,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -40,10 +39,11 @@ import app.lumadocs.kmp.CurrentUserState
 import app.lumadocs.kmp.VaultEvents
 import app.lumadocs.kmp.data.FirebaseUser
 import app.lumadocs.kmp.icons.LumaIcons
+import app.lumadocs.kmp.navigation.AppBackHandler
 import app.lumadocs.kmp.theme.LocalLumaColors
 import app.lumadocs.kmp.theme.LumaUi
-import org.koin.compose.viewmodel.koinViewModel
 import app.lumadocs.kmp.viewmodels.DocumentsViewModel
+import org.koin.compose.viewmodel.koinViewModel
 
 private enum class HomeTab { VAULT, SEARCH, REMINDERS, SETTINGS }
 
@@ -61,10 +61,16 @@ internal fun HomeScreen(
     }
     val currentUser by CurrentUserState.user.collectAsState()
     val c = LocalLumaColors.current
-    var tab by remember { mutableStateOf(HomeTab.VAULT) }
+    // Saved (not just remembered) so the tab survives leaving composition while a document
+    // detail / scan route is on top — back then returns to the tab the user came from.
+    var tabOrdinal by rememberSaveable { mutableStateOf(HomeTab.VAULT.ordinal) }
+    val tab = HomeTab.entries[tabOrdinal]
     val docsVm: DocumentsViewModel = koinViewModel()
 
-    // Refresh the vault after a scan-save (which happens on a different nav entry).
+    // Back from any secondary tab lands on the home tab; on the home tab the event falls
+    // through to the nav back stack.
+    AppBackHandler(enabled = tab != HomeTab.VAULT) { tabOrdinal = HomeTab.VAULT.ordinal }
+
     val refreshTick by VaultEvents.refreshTick.collectAsState()
     LaunchedEffect(refreshTick) { if (refreshTick > 0) docsVm.refreshFiles() }
 
@@ -74,12 +80,12 @@ internal fun HomeScreen(
                 HomeTab.VAULT -> VaultScreen(
                     vm = docsVm, user = currentUser,
                     onOpenDoc = { onNavigateToDetail(it.id) },
-                    onOpenReminders = { tab = HomeTab.REMINDERS },
+                    onOpenReminders = { tabOrdinal = HomeTab.REMINDERS.ordinal },
                 )
                 HomeTab.SEARCH -> VaultSearchScreen(
                     vm = docsVm,
                     onOpenDoc = { onNavigateToDetail(it.id) },
-                    onBack = { tab = HomeTab.VAULT },
+                    onBack = { tabOrdinal = HomeTab.VAULT.ordinal },
                 )
                 HomeTab.REMINDERS -> RemindersScreen(vm = docsVm, onOpenDoc = { onNavigateToDetail(it.id) })
                 HomeTab.SETTINGS -> SettingsScreen(paddingValues = PaddingValues(0.dp), modifier = Modifier.fillMaxSize())
@@ -88,7 +94,7 @@ internal fun HomeScreen(
 
         LumaTabBar(
             active = tab,
-            onSelect = { tab = it },
+            onSelect = { tabOrdinal = it.ordinal },
             onScan = onNavigateToScan,
             modifier = Modifier.align(Alignment.BottomCenter),
         )
@@ -111,7 +117,11 @@ private fun LumaTabBar(
             .padding(start = 12.dp, end = 12.dp, bottom = 20.dp, top = 4.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        TabItem(LumaIcons.Vault, "Vault", active == HomeTab.VAULT, Modifier.weight(1f)) { onSelect(HomeTab.VAULT) }
+        TabItem(LumaIcons.Vault, "Home", active == HomeTab.VAULT, Modifier.weight(1f)) {
+            onSelect(
+                HomeTab.VAULT
+            )
+        }
         TabItem(LumaIcons.Search, "Search", active == HomeTab.SEARCH, Modifier.weight(1f)) { onSelect(HomeTab.SEARCH) }
         // Center scan FAB
         Box(Modifier.weight(1f), contentAlignment = Alignment.Center) {

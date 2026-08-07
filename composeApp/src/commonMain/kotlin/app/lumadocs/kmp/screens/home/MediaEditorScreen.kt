@@ -61,6 +61,7 @@ import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import app.lumadocs.kmp.navigation.AppBackHandler
 import app.lumadocs.kmp.platform.PickedFile
 import app.lumadocs.kmp.platform.cropImageBytes
 import app.lumadocs.kmp.theme.nBlack400
@@ -104,6 +105,9 @@ internal fun MediaEditorScreen(
 
     // Normalized crop rect; reset when entering crop mode or switching image.
     var crop by remember(index, cropMode) { mutableStateOf(Rect(0f, 0f, 1f, 1f)) }
+
+    // Back leaves crop mode first, then leaves the editor.
+    AppBackHandler { if (cropMode) cropMode = false else onCancel() }
 
     Box(modifier = Modifier.fillMaxSize().background(Color.Black)) {
         Column(

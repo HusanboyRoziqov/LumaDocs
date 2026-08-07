@@ -72,6 +72,7 @@ internal fun SettingsScreen(
     val pinViewModel = viewModel { PinViewModel(dataStore) }
     val appLockEnabled by pinViewModel.lockEnabled.collectAsStateWithLifecycle()
     val settingsState by settingsViewModel.uiState.collectAsStateWithLifecycle()
+    val encryptUploads by settingsViewModel.encryptNewUploads.collectAsStateWithLifecycle()
 
     var showExportConfirm by remember { mutableStateOf(false) }
     var showClearSessionsConfirm by remember { mutableStateOf(false) }
@@ -126,7 +127,16 @@ internal fun SettingsScreen(
             if (appLockEnabled) {
                 SettingRow(LumaIcons.Key, "Change PIN", chevron = true, onClick = { PinFlowState.start(PinFlowRequest.CHANGE) })
             }
-            SettingRow(LumaIcons.Shield, "Encryption", sub = "AES-256 · Active", detail = "Active", chevron = false, isLast = true)
+            // Applies to documents added from now on; anything already in the vault keeps the
+            // state it was stored with.
+            SettingRow(
+                LumaIcons.Shield, "Encryption",
+                sub = if (encryptUploads) "AES-256 · new photos encrypted" else "New photos stored unencrypted",
+                isLast = true,
+                trailing = {
+                    LumaToggle(on = encryptUploads, onChange = { settingsViewModel.setEncryptNewUploads(it) })
+                },
+            )
         }
 
         // Cloud & Sync

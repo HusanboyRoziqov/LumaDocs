@@ -16,6 +16,7 @@ import app.lumadocs.kmp.platform.buildAndShareBackup
 import app.lumadocs.kmp.platform.importBackupFromUri
 import app.lumadocs.kmp.services.DriveFile
 import app.lumadocs.kmp.services.GoogleDriveRepository
+import app.lumadocs.kmp.utils.EncryptionSettings
 import app.lumadocs.kmp.utils.ErrorMessages
 import app.lumadocs.kmp.utils.PreviewCache
 import app.lumadocs.kmp.utils.SecurityUtils
@@ -30,7 +31,9 @@ import lumadocs.composeapp.generated.resources.error_load_failed
 import lumadocs.composeapp.generated.resources.error_no_files_export
 import org.jetbrains.compose.resources.getString
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
@@ -44,6 +47,14 @@ class SettingsViewModel(
     val uiState = _uiState.asStateFlow()
 
     private var pendingImport: List<Pair<BackupFileMeta, ByteArray>> = emptyList()
+
+    /** Whether documents added from now on are encrypted before upload. */
+    val encryptNewUploads = EncryptionSettings.flow(dataStore)
+        .stateIn(viewModelScope, SharingStarted.Eagerly, EncryptionSettings.DEFAULT)
+
+    fun setEncryptNewUploads(enabled: Boolean) {
+        viewModelScope.launch { EncryptionSettings.set(dataStore, enabled) }
+    }
 
     init {
         checkGoogleDriveConnection()

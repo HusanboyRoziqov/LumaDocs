@@ -54,13 +54,18 @@ internal fun RemindersScreen(
     val files = state.files ?: emptyList()
 
     val withExpiry = files.mapNotNull { f -> expiryDaysOf(f)?.let { f to it } }
+    val expired = withExpiry.filter { it.second < 0 }.sortedByDescending { it.second }
+
+    fun upcoming(range: IntRange) = withExpiry.filter { it.second in range }.sortedBy { it.second }
     val groups = listOf(
-        Triple("Within 7 days", c.err, withExpiry.filter { it.second in 0..7 }),
-        Triple("Within 30 days", c.warn, withExpiry.filter { it.second in 8..30 }),
-        Triple("Within 90 days", c.accent, withExpiry.filter { it.second in 31..90 }),
-        Triple("Later", c.textDim, withExpiry.filter { it.second > 90 }),
+        Triple("Within 7 days", c.warn, upcoming(0..7)),
+        Triple("Within 30 days", c.accent, upcoming(8..30)),
+        Triple("Within 90 days", c.textDim, upcoming(31..90)),
+        Triple("Later", c.textMute, withExpiry.filter { it.second > 90 }.sortedBy { it.second }),
+        Triple("Expired", c.err, expired),
     )
-    val under30 = withExpiry.count { it.second in 0..30 }
+    val expiredCount = expired.size
+    val under30 = withExpiry.count { it.second in 0..30 }   
     val totalExpiry = withExpiry.size
 
     Column(modifier.fillMaxSize().background(c.bg).padding(top = 8.dp)) {
@@ -69,7 +74,6 @@ internal fun RemindersScreen(
             Text("What's expiring.", fontFamily = LumaDisplay, fontSize = 34.sp, letterSpacing = (-1).sp, color = c.text, modifier = Modifier.padding(top = 4.dp))
         }
 
-        // Summary
         Row(
             Modifier
                 .fillMaxWidth().padding(20.dp).clip(RoundedCornerShape(16.dp))
@@ -77,9 +81,11 @@ internal fun RemindersScreen(
                 .border(1.dp, c.err.copy(alpha = 0.2f), RoundedCornerShape(16.dp)).padding(16.dp),
             horizontalArrangement = Arrangement.spacedBy(16.dp),
         ) {
-            SummaryStat("$under30", "EXPIRE IN < 30 DAYS", Modifier.weight(1f))
+            SummaryStat("$expiredCount", "EXPIRED", Modifier.weight(1f))
             Box(Modifier.width(1.dp).height(48.dp).background(c.hairline))
-            SummaryStat("$totalExpiry", "HAVE EXPIRY SET", Modifier.weight(1f))
+            SummaryStat("$under30", "DUE < 30 DAYS", Modifier.weight(1f))
+            Box(Modifier.width(1.dp).height(48.dp).background(c.hairline))
+            SummaryStat("$totalExpiry", "TRACKED", Modifier.weight(1f))
         }
 
         LazyColumn(Modifier.fillMaxSize(), contentPadding = PaddingValues(bottom = 96.dp)) {
@@ -103,8 +109,13 @@ internal fun RemindersScreen(
                                 Text(f.name, fontFamily = LumaUi, fontSize = 14.sp, fontWeight = FontWeight.Medium, color = c.text, maxLines = 1, overflow = TextOverflow.Ellipsis)
                                 Text(formatExpiry(f.expiryDate), fontFamily = LumaMono, fontSize = 11.5.sp, color = c.textMute, letterSpacing = 0.3.sp, modifier = Modifier.padding(top = 3.dp))
                             }
+                            val badge = when {
+                                days < 0 -> "${-days}d ago"
+                                days == 0 -> "today"
+                                else -> "${days}d"
+                            }
                             Box(Modifier.clip(RoundedCornerShape(8.dp)).background(color.copy(alpha = 0.1f)).padding(horizontal = 10.dp, vertical = 5.dp)) {
-                                Text("${days}d", fontFamily = LumaMono, fontSize = 12.sp, fontWeight = FontWeight.SemiBold, color = color, letterSpacing = 0.3.sp)
+                                Text(badge, fontFamily = LumaMono, fontSize = 12.sp, fontWeight = FontWeight.SemiBold, color = color, letterSpacing = 0.3.sp, maxLines = 1)
                             }
                         }
                     }
@@ -122,7 +133,7 @@ internal fun RemindersScreen(
 private fun SummaryStat(value: String, label: String, modifier: Modifier = Modifier) {
     val c = LocalLumaColors.current
     Column(modifier) {
-        Text(value, fontFamily = LumaDisplay, fontSize = 42.sp, lineHeight = 42.sp, color = c.text)
-        Text(label, fontFamily = LumaMono, fontSize = 11.5.sp, color = c.textDim, letterSpacing = 0.4.sp, modifier = Modifier.padding(top = 6.dp))
+        Text(value, fontFamily = LumaDisplay, fontSize = 34.sp, lineHeight = 34.sp, color = c.text)
+        Text(label, fontFamily = LumaMono, fontSize = 10.5.sp, color = c.textDim, letterSpacing = 0.4.sp, maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.padding(top = 6.dp))
     }
 }

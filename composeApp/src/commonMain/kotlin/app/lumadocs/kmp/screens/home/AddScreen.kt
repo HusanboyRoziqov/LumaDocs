@@ -163,7 +163,8 @@ internal fun AddScreen(
     var nameError by remember { mutableStateOf(false) }
     var folderError by remember { mutableStateOf(false) }
     var imageDesc by remember { mutableStateOf("") }
-    var makeEncrypted by remember { mutableStateOf(false) }
+    // Starts from the Settings default; the switch still overrides it for this batch only.
+    var makeEncrypted by remember { mutableStateOf(viewModel.encryptionDefault()) }
 
     val hasNonImage = uiState.selectedFiles.any { !it.mimeType.startsWith("image/") }
     LaunchedEffect(hasNonImage) {
@@ -211,7 +212,7 @@ internal fun AddScreen(
             customFileName = ""
             folderName = ""
             imageDesc = ""
-            makeEncrypted = false
+            makeEncrypted = viewModel.encryptionDefault()
             expiryEnabled = false
             expiryDateIso = null
             viewModel.clearMessages()
