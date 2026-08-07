@@ -42,6 +42,14 @@ import app.lumadocs.kmp.data.FirebaseUser
 import app.lumadocs.kmp.icons.GoogleIcon
 import app.lumadocs.kmp.icons.LumaIcons
 import app.lumadocs.kmp.theme.LocalLumaColors
+import lumadocs.composeapp.generated.resources.Res
+import lumadocs.composeapp.generated.resources.continue_as_guest
+import lumadocs.composeapp.generated.resources.continue_with_google
+import lumadocs.composeapp.generated.resources.start_body
+import lumadocs.composeapp.generated.resources.start_kicker
+import lumadocs.composeapp.generated.resources.start_legal
+import lumadocs.composeapp.generated.resources.start_title
+import org.jetbrains.compose.resources.stringResource
 import app.lumadocs.kmp.theme.LumaDisplay
 import app.lumadocs.kmp.theme.LumaMono
 import app.lumadocs.kmp.theme.LumaUi
@@ -92,16 +100,16 @@ fun StartedScreen(
                     Text("L", fontFamily = LumaDisplay, fontStyle = FontStyle.Italic, fontSize = 44.sp, color = c.accent)
                 }
                 Spacer(Modifier.height(28.dp))
-                Text("CHOOSE HOW TO UNLOCK", fontFamily = LumaMono, fontSize = 10.5.sp, fontWeight = FontWeight.Medium, color = c.textMute, letterSpacing = 1.8.sp)
+                Text(stringResource(Res.string.start_kicker), fontFamily = LumaMono, fontSize = 10.5.sp, fontWeight = FontWeight.Medium, color = c.textMute, letterSpacing = 1.8.sp)
                 Spacer(Modifier.height(14.dp))
                 Text(
-                    "Sign in, or go private.",
+                    stringResource(Res.string.start_title),
                     fontFamily = LumaDisplay, fontStyle = FontStyle.Italic, fontSize = 36.sp,
                     lineHeight = 38.sp, letterSpacing = (-1).sp, color = c.text, textAlign = TextAlign.Center,
                 )
                 Spacer(Modifier.height(14.dp))
                 Text(
-                    "Sign in to sync encrypted backups across your devices. Guest mode keeps everything on this phone only.",
+                    stringResource(Res.string.start_body),
                     fontFamily = LumaUi, fontSize = 14.sp, lineHeight = 21.sp, color = c.textDim, textAlign = TextAlign.Center,
                 )
             }
@@ -122,7 +130,7 @@ fun StartedScreen(
                     } else {
                         Icon(GoogleIcon, null, tint = Color.Unspecified, modifier = Modifier.size(20.dp))
                         Spacer(Modifier.width(12.dp))
-                        Text("Continue with Google", color = Color(0xFF1A1408), fontFamily = LumaUi, fontSize = 16.sp, fontWeight = FontWeight.SemiBold)
+                        Text(stringResource(Res.string.continue_with_google), color = Color(0xFF1A1408), fontFamily = LumaUi, fontSize = 16.sp, fontWeight = FontWeight.SemiBold)
                     }
                 }
                 // Continue as Guest
@@ -137,10 +145,10 @@ fun StartedScreen(
                 ) {
                     Icon(LumaIcons.Lock, null, tint = c.textDim, modifier = Modifier.size(18.dp))
                     Spacer(Modifier.width(10.dp))
-                    Text("Continue as Guest", color = c.text, fontFamily = LumaUi, fontSize = 16.sp, fontWeight = FontWeight.Medium)
+                    Text(stringResource(Res.string.continue_as_guest), color = c.text, fontFamily = LumaUi, fontSize = 16.sp, fontWeight = FontWeight.Medium)
                 }
                 Text(
-                    "By continuing you agree to our Terms and Privacy Policy. Your documents are encrypted before they ever leave your device.",
+                    stringResource(Res.string.start_legal),
                     fontFamily = LumaUi, fontSize = 11.5.sp, lineHeight = 17.sp, color = c.textMute,
                     textAlign = TextAlign.Center, modifier = Modifier.fillMaxWidth().padding(horizontal = 20.dp, vertical = 12.dp),
                 )

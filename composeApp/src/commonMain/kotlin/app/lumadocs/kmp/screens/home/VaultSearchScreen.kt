@@ -53,13 +53,31 @@ import app.lumadocs.kmp.ui.SectionLabel
 import app.lumadocs.kmp.ui.ThumbSize
 import app.lumadocs.kmp.ui.categoryOf
 import app.lumadocs.kmp.ui.expiryDaysOf
+import app.lumadocs.kmp.ui.localizedLabel
 import app.lumadocs.kmp.viewmodels.DocumentsViewModel
+import lumadocs.composeapp.generated.resources.Res
+import lumadocs.composeapp.generated.resources.action_clear
+import lumadocs.composeapp.generated.resources.cancel
+import lumadocs.composeapp.generated.resources.matches_count
+import lumadocs.composeapp.generated.resources.search_match_label
+import lumadocs.composeapp.generated.resources.search_no_matches
+import lumadocs.composeapp.generated.resources.search_placeholder
+import lumadocs.composeapp.generated.resources.search_recent
+import lumadocs.composeapp.generated.resources.search_recent_empty
+import lumadocs.composeapp.generated.resources.search_smart_suggestions
+import lumadocs.composeapp.generated.resources.sug_encrypted
+import lumadocs.composeapp.generated.resources.sug_expiring_month
+import lumadocs.composeapp.generated.resources.sug_has_expiry
+import lumadocs.composeapp.generated.resources.sug_photos
+import org.jetbrains.compose.resources.StringResource
+import org.jetbrains.compose.resources.pluralStringResource
+import org.jetbrains.compose.resources.stringResource
 
-private enum class Smart(val label: String) {
-    EXPIRING("Expiring this month"),
-    PHOTOS("Photos"),
-    ENCRYPTED("Encrypted"),
-    HAS_EXPIRY("Has expiry set"),
+private enum class Smart(val labelRes: StringResource) {
+    EXPIRING(Res.string.sug_expiring_month),
+    PHOTOS(Res.string.sug_photos),
+    ENCRYPTED(Res.string.sug_encrypted),
+    HAS_EXPIRY(Res.string.sug_has_expiry),
 }
 
 @Composable
@@ -105,7 +123,7 @@ internal fun VaultSearchScreen(
             ) {
                 Icon(LumaIcons.Search, null, tint = c.textMute, modifier = Modifier.size(18.dp))
                 Box(Modifier.weight(1f), contentAlignment = Alignment.CenterStart) {
-                    if (query.isEmpty()) Text("Search name, tag, or text inside…", color = c.textMute, fontFamily = LumaUi, fontSize = 15.sp)
+                    if (query.isEmpty()) Text(stringResource(Res.string.search_placeholder), color = c.textMute, fontFamily = LumaUi, fontSize = 15.sp)
                     BasicTextField(
                         value = query, onValueChange = { query = it; smart = null },
                         singleLine = true, textStyle = TextStyle(color = c.text, fontFamily = LumaUi, fontSize = 15.sp),
@@ -120,21 +138,21 @@ internal fun VaultSearchScreen(
                     }
                 }
             }
-            Text("Cancel", color = c.accent, fontFamily = LumaUi, fontSize = 14.sp, fontWeight = FontWeight.Medium, modifier = Modifier.clickable { query = ""; smart = null; onBack() })
+            Text(stringResource(Res.string.cancel), color = c.accent, fontFamily = LumaUi, fontSize = 14.sp, fontWeight = FontWeight.Medium, modifier = Modifier.clickable { query = ""; smart = null; onBack() })
         }
 
         LazyColumn(Modifier.fillMaxSize(), contentPadding = PaddingValues(bottom = 96.dp)) {
             if (!showResults) {
                 item {
-                    SectionLabel("Recent", right = {
+                    SectionLabel(stringResource(Res.string.search_recent), right = {
                         if (recents.isNotEmpty()) {
-                            Text("Clear", color = c.accent, fontFamily = LumaUi, fontSize = 12.sp, fontWeight = FontWeight.Medium, modifier = Modifier.clickable { vm.clearRecentSearches() })
+                            Text(stringResource(Res.string.action_clear), color = c.accent, fontFamily = LumaUi, fontSize = 12.sp, fontWeight = FontWeight.Medium, modifier = Modifier.clickable { vm.clearRecentSearches() })
                         }
                     })
                     Spacer(Modifier.height(8.dp))
                     if (recents.isEmpty()) {
                         Text(
-                            "Your recent searches will show up here.",
+                            stringResource(Res.string.search_recent_empty),
                             color = c.textMute, fontFamily = LumaUi, fontSize = 13.sp,
                             modifier = Modifier.padding(horizontal = 20.dp, vertical = 8.dp),
                         )
@@ -154,7 +172,7 @@ internal fun VaultSearchScreen(
                         }
                     }
                     Spacer(Modifier.height(24.dp))
-                    SectionLabel("Smart Suggestions"); Spacer(Modifier.height(12.dp))
+                    SectionLabel(stringResource(Res.string.search_smart_suggestions)); Spacer(Modifier.height(12.dp))
                     LazyRow(contentPadding = PaddingValues(horizontal = 20.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                         items(Smart.entries) { s ->
                             Row(
@@ -162,13 +180,13 @@ internal fun VaultSearchScreen(
                                 verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp),
                             ) {
                                 Icon(LumaIcons.Sparkle, null, tint = c.accentHi, modifier = Modifier.size(12.dp))
-                                Text(s.label, color = c.accentHi, fontFamily = LumaUi, fontSize = 12.sp, fontWeight = FontWeight.Medium)
+                                Text(stringResource(s.labelRes), color = c.accentHi, fontFamily = LumaUi, fontSize = 12.sp, fontWeight = FontWeight.Medium)
                             }
                         }
                     }
                 }
             } else {
-                item { SectionLabel("${results.size} match${if (results.size != 1) "es" else ""}"); Spacer(Modifier.height(12.dp)) }
+                item { SectionLabel(pluralStringResource(Res.plurals.matches_count, results.size, results.size)); Spacer(Modifier.height(12.dp)) }
                 items(results) { f ->
                     Row(
                         Modifier.fillMaxWidth().padding(horizontal = 20.dp, vertical = 4.dp)
@@ -179,13 +197,13 @@ internal fun VaultSearchScreen(
                         DocFileThumb(file = f, size = ThumbSize.SM)
                         Column(Modifier.weight(1f)) {
                             Text(highlight(f.name, query, c.accent), fontFamily = LumaUi, fontSize = 14.sp, fontWeight = FontWeight.Medium, color = c.text)
-                            Text("${categoryOf(f).label} · match", fontFamily = LumaMono, fontSize = 11.sp, color = c.textMute, modifier = Modifier.padding(top = 3.dp))
+                            Text(stringResource(Res.string.search_match_label, categoryOf(f).localizedLabel()), fontFamily = LumaMono, fontSize = 11.sp, color = c.textMute, modifier = Modifier.padding(top = 3.dp))
                         }
                         Icon(LumaIcons.Chevron, null, tint = c.textMute, modifier = Modifier.size(14.dp))
                     }
                 }
                 if (results.isEmpty()) {
-                    item { Box(Modifier.fillMaxWidth().padding(40.dp), contentAlignment = Alignment.Center) { Text("No documents match", color = c.textMute, fontFamily = LumaUi, fontSize = 14.sp) } }
+                    item { Box(Modifier.fillMaxWidth().padding(40.dp), contentAlignment = Alignment.Center) { Text(stringResource(Res.string.search_no_matches), color = c.textMute, fontFamily = LumaUi, fontSize = 14.sp) } }
                 }
             }
         }

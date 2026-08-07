@@ -80,9 +80,41 @@ import app.lumadocs.kmp.ui.MetaRow
 import app.lumadocs.kmp.ui.SectionLabel
 import app.lumadocs.kmp.ui.categoryOf
 import app.lumadocs.kmp.ui.expiryDaysOf
-import app.lumadocs.kmp.ui.formatExpiry
-import app.lumadocs.kmp.ui.formatSize
+import app.lumadocs.kmp.ui.formatExpiryLocalized
+import app.lumadocs.kmp.ui.localizedLabel
+import app.lumadocs.kmp.ui.localizedMimeLabel
+import app.lumadocs.kmp.ui.formatSizeLocalized
 import app.lumadocs.kmp.ui.sizedThumb
+import lumadocs.composeapp.generated.resources.Res
+import lumadocs.composeapp.generated.resources.action_clear
+import lumadocs.composeapp.generated.resources.cancel
+import lumadocs.composeapp.generated.resources.close
+import lumadocs.composeapp.generated.resources.delete
+import lumadocs.composeapp.generated.resources.delete_document_message
+import lumadocs.composeapp.generated.resources.delete_document_title
+import lumadocs.composeapp.generated.resources.detail_expires_in
+import lumadocs.composeapp.generated.resources.document_category
+import lumadocs.composeapp.generated.resources.document_name_hint
+import lumadocs.composeapp.generated.resources.edit
+import lumadocs.composeapp.generated.resources.edit_document
+import lumadocs.composeapp.generated.resources.encrypted_aes
+import lumadocs.composeapp.generated.resources.expiry_optional
+import lumadocs.composeapp.generated.resources.field_name
+import lumadocs.composeapp.generated.resources.meta_category
+import lumadocs.composeapp.generated.resources.meta_expires
+import lumadocs.composeapp.generated.resources.meta_notes
+import lumadocs.composeapp.generated.resources.meta_security
+import lumadocs.composeapp.generated.resources.meta_type
+import lumadocs.composeapp.generated.resources.not_encrypted
+import lumadocs.composeapp.generated.resources.notes_edit_placeholder
+import lumadocs.composeapp.generated.resources.notes_encrypted_note
+import lumadocs.composeapp.generated.resources.notes_label
+import lumadocs.composeapp.generated.resources.notes_placeholder
+import lumadocs.composeapp.generated.resources.page_indicator
+import lumadocs.composeapp.generated.resources.save
+import lumadocs.composeapp.generated.resources.share
+import lumadocs.composeapp.generated.resources.tap_to_pick_date
+import org.jetbrains.compose.resources.stringResource
 import coil3.compose.AsyncImage
 import coil3.compose.LocalPlatformContext
 import coil3.request.ImageRequest
@@ -115,6 +147,7 @@ fun DocumentInfoScreen(
     var showDeleteConfirm by remember { mutableStateOf(false) }
 
     val mimeLabel = remember(file.mimeType) { getMimeTypeLabel(file.mimeType) }
+    val mimeLabelText = localizedMimeLabel(file.mimeType)
     val days = expiryDaysOf(file)
     // Images to page through when the document was uploaded as a folder of pages.
     val imagePages = remember(pages) {
@@ -138,7 +171,7 @@ fun DocumentInfoScreen(
         Row(Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 12.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.SpaceBetween) {
             CircleButton(LumaIcons.Back, onBack)
             Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.weight(1f)) {
-                Text("${cat.label.uppercase()} · $mimeLabel", fontFamily = LumaMono, fontSize = 10.5.sp, color = c.textMute, letterSpacing = 1.2.sp)
+                Text("${cat.localizedLabel().uppercase()} · $mimeLabelText", fontFamily = LumaMono, fontSize = 10.5.sp, color = c.textMute, letterSpacing = 1.2.sp)
                 Text(file.name, fontFamily = LumaUi, fontSize = 14.sp, fontWeight = FontWeight.SemiBold, color = c.text, maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.padding(top = 2.dp))
             }
             CircleButton(LumaIcons.Edit, { showEdit = true }, iconSize = 16.dp)
@@ -167,7 +200,7 @@ fun DocumentInfoScreen(
                         }
                         // Page counter
                         Box(Modifier.align(Alignment.TopEnd).padding(12.dp).clip(RoundedCornerShape(999.dp)).background(Color(0xB3000000)).padding(horizontal = 10.dp, vertical = 5.dp)) {
-                            Text("${pagerState.currentPage + 1} / ${imagePages.size}", fontFamily = LumaMono, fontSize = 11.sp, color = Color.White)
+                            Text(stringResource(Res.string.page_indicator, pagerState.currentPage + 1, imagePages.size), fontFamily = LumaMono, fontSize = 11.sp, color = Color.White)
                         }
                         // Dots
                         Row(Modifier.align(Alignment.BottomCenter).padding(bottom = 12.dp), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
@@ -189,33 +222,33 @@ fun DocumentInfoScreen(
 
             // Meta card
             Column(Modifier.padding(horizontal = 16.dp).padding(top = 6.dp).clip(RoundedCornerShape(20.dp)).background(c.bg2).border(1.dp, c.hairline, RoundedCornerShape(20.dp))) {
-                MetaRow("CATEGORY") {
+                MetaRow(stringResource(Res.string.meta_category)) {
                     Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                         Box(Modifier.size(8.dp).clip(RoundedCornerShape(2.dp)).background(cat.hue))
-                        Text(cat.label, fontFamily = LumaUi, fontSize = 13.5.sp, color = c.text)
+                        Text(cat.localizedLabel(), fontFamily = LumaUi, fontSize = 13.5.sp, color = c.text)
                     }
                 }
-                MetaRow("TYPE") { Text("$mimeLabel · ${formatSize(file.size)}", fontFamily = LumaUi, fontSize = 13.5.sp, color = c.text) }
+                MetaRow(stringResource(Res.string.meta_type)) { Text("$mimeLabelText · ${formatSizeLocalized(file.size)}", fontFamily = LumaUi, fontSize = 13.5.sp, color = c.text) }
                 if (!file.expiryDate.isNullOrBlank()) {
-                    MetaRow("EXPIRES", isLast = file.encrypted.not()) {
+                    MetaRow(stringResource(Res.string.meta_expires), isLast = file.encrypted.not()) {
                         Row(verticalAlignment = Alignment.CenterVertically) {
-                            Text(formatExpiry(file.expiryDate), fontFamily = LumaUi, fontSize = 13.5.sp, color = if ((days ?: 999) <= 30) c.warn else c.text)
-                            if (days != null) Text(" · in ${days}d", fontFamily = LumaMono, fontSize = 11.sp, color = c.textMute)
+                            Text(formatExpiryLocalized(file.expiryDate), fontFamily = LumaUi, fontSize = 13.5.sp, color = if ((days ?: 999) <= 30) c.warn else c.text)
+                            if (days != null) Text(stringResource(Res.string.detail_expires_in, days), fontFamily = LumaMono, fontSize = 11.sp, color = c.textMute)
                         }
                     }
                 }
-                MetaRow("SECURITY", isLast = true) {
-                    Text(if (file.encrypted) "Encrypted · AES-256" else "Not encrypted", fontFamily = LumaUi, fontSize = 13.5.sp, color = if (file.encrypted) c.accentHi else c.textDim)
+                MetaRow(stringResource(Res.string.meta_security), isLast = true) {
+                    Text(stringResource(if (file.encrypted) Res.string.encrypted_aes else Res.string.not_encrypted), fontFamily = LumaUi, fontSize = 13.5.sp, color = if (file.encrypted) c.accentHi else c.textDim)
                 }
             }
 
             // Notes card
             Column(Modifier.padding(horizontal = 16.dp).padding(top = 16.dp)) {
                 Row(Modifier.fillMaxWidth().padding(horizontal = 4.dp, vertical = 0.dp), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
-                    Text("NOTES", fontFamily = LumaMono, fontSize = 10.5.sp, fontWeight = FontWeight.Medium, color = c.textMute, letterSpacing = 1.4.sp)
+                    Text(stringResource(Res.string.meta_notes), fontFamily = LumaMono, fontSize = 10.5.sp, fontWeight = FontWeight.Medium, color = c.textMute, letterSpacing = 1.4.sp)
                     Row(Modifier.clickable { showEdit = true }, verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(4.dp)) {
                         Icon(LumaIcons.Edit, null, tint = c.accent, modifier = Modifier.size(12.dp))
-                        Text("Edit", fontFamily = LumaUi, fontSize = 12.sp, fontWeight = FontWeight.Medium, color = c.accent)
+                        Text(stringResource(Res.string.edit), fontFamily = LumaUi, fontSize = 12.sp, fontWeight = FontWeight.Medium, color = c.accent)
                     }
                 }
                 Spacer(Modifier.height(10.dp))
@@ -226,7 +259,7 @@ fun DocumentInfoScreen(
                     if (note.isNullOrBlank()) {
                         Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                             Icon(LumaIcons.Edit, null, tint = c.accent, modifier = Modifier.size(14.dp))
-                            Text("Add a note — reminders, reference numbers, renewal steps…", fontFamily = LumaUi, fontSize = 13.5.sp, color = c.textMute)
+                            Text(stringResource(Res.string.notes_placeholder), fontFamily = LumaUi, fontSize = 13.5.sp, color = c.textMute)
                         }
                     } else {
                         Text(note, fontFamily = LumaUi, fontSize = 13.5.sp, lineHeight = 21.sp, color = c.text)
@@ -237,8 +270,8 @@ fun DocumentInfoScreen(
             // Actions
             // Tapping the preview is how you view a document now — no "Open" action needed here.
             Row(Modifier.fillMaxWidth().padding(16.dp).padding(bottom = 24.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                ActionButton(LumaIcons.Share, "Share", Modifier.weight(1f), onClick = onShare)
-                ActionButton(LumaIcons.Trash, "Delete", Modifier.weight(1f), danger = true, onClick = { showDeleteConfirm = true })
+                ActionButton(LumaIcons.Share, stringResource(Res.string.share), Modifier.weight(1f), onClick = onShare)
+                ActionButton(LumaIcons.Trash, stringResource(Res.string.delete), Modifier.weight(1f), danger = true, onClick = { showDeleteConfirm = true })
             }
         }
     }
@@ -266,10 +299,10 @@ fun DocumentInfoScreen(
         AlertDialog(
             onDismissRequest = { showDeleteConfirm = false },
             containerColor = c.bg2, titleContentColor = c.text, textContentColor = c.textDim,
-            title = { Text("Delete document?", fontFamily = LumaUi, fontWeight = FontWeight.SemiBold) },
-            text = { Text("This permanently removes it from your vault and Google Drive.", fontFamily = LumaUi) },
-            confirmButton = { TextButton(onClick = { showDeleteConfirm = false; onDelete() }) { Text("Delete", color = c.err, fontWeight = FontWeight.SemiBold) } },
-            dismissButton = { TextButton(onClick = { showDeleteConfirm = false }) { Text("Cancel", color = c.textDim) } },
+            title = { Text(stringResource(Res.string.delete_document_title), fontFamily = LumaUi, fontWeight = FontWeight.SemiBold) },
+            text = { Text(stringResource(Res.string.delete_document_message), fontFamily = LumaUi) },
+            confirmButton = { TextButton(onClick = { showDeleteConfirm = false; onDelete() }) { Text(stringResource(Res.string.delete), color = c.err, fontWeight = FontWeight.SemiBold) } },
+            dismissButton = { TextButton(onClick = { showDeleteConfirm = false }) { Text(stringResource(Res.string.cancel), color = c.textDim) } },
         )
     }
 }
@@ -413,7 +446,7 @@ private fun FullscreenPageViewer(
                         .clip(RoundedCornerShape(999.dp)).background(Color(0xB3000000))
                         .padding(horizontal = 12.dp, vertical = 6.dp),
                 ) {
-                    Text("${pagerState.currentPage + 1} / ${pages.size}", fontFamily = LumaMono, fontSize = 12.sp, color = Color.White)
+                    Text(stringResource(Res.string.page_indicator, pagerState.currentPage + 1, pages.size), fontFamily = LumaMono, fontSize = 12.sp, color = Color.White)
                 }
             }
 
@@ -422,7 +455,7 @@ private fun FullscreenPageViewer(
                     .size(44.dp).clip(CircleShape).background(Color(0x26FFFFFF)).clickable(onClick = onDismiss),
                 contentAlignment = Alignment.Center,
             ) {
-                Icon(LumaIcons.Close, "Close", tint = Color.White, modifier = Modifier.size(22.dp))
+                Icon(LumaIcons.Close, stringResource(Res.string.close), tint = Color.White, modifier = Modifier.size(22.dp))
             }
         }
     }
@@ -472,44 +505,44 @@ private fun EditDocumentSheet(
     ) {
         Column(Modifier.fillMaxWidth().navigationBarsPadding().imePadding().verticalScroll(rememberScrollState()).padding(horizontal = 20.dp).padding(bottom = 24.dp)) {
             Row(Modifier.fillMaxWidth().padding(bottom = 12.dp), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
-                Text("Cancel", color = c.textDim, fontFamily = LumaUi, fontSize = 15.sp, modifier = Modifier.clickable(onClick = onDismiss))
-                Text("Edit Document", color = c.text, fontFamily = LumaUi, fontSize = 15.sp, fontWeight = FontWeight.SemiBold)
+                Text(stringResource(Res.string.cancel), color = c.textDim, fontFamily = LumaUi, fontSize = 15.sp, modifier = Modifier.clickable(onClick = onDismiss))
+                Text(stringResource(Res.string.edit_document), color = c.text, fontFamily = LumaUi, fontSize = 15.sp, fontWeight = FontWeight.SemiBold)
                 if (isSaving) {
                     CircularProgressIndicator(Modifier.size(18.dp), color = c.accent, strokeWidth = 2.dp)
                 } else {
-                    Text("Save", color = if (name.isBlank()) c.textMute else c.accent, fontFamily = LumaUi, fontSize = 15.sp, fontWeight = FontWeight.SemiBold, modifier = Modifier.clickable(enabled = name.isNotBlank()) { onSave(name.trim(), notes.trim().ifEmpty { null }, expiry) })
+                    Text(stringResource(Res.string.save), color = if (name.isBlank()) c.textMute else c.accent, fontFamily = LumaUi, fontSize = 15.sp, fontWeight = FontWeight.SemiBold, modifier = Modifier.clickable(enabled = name.isNotBlank()) { onSave(name.trim(), notes.trim().ifEmpty { null }, expiry) })
                 }
             }
 
-            SectionLabel("Name", Modifier.padding(horizontal = 0.dp)); Spacer(Modifier.height(8.dp))
-            EditField { EditInline(name, "Document name", { name = it }) }
+            SectionLabel(stringResource(Res.string.field_name), Modifier.padding(horizontal = 0.dp)); Spacer(Modifier.height(8.dp))
+            EditField { EditInline(name, stringResource(Res.string.document_name_hint), { name = it }) }
             Spacer(Modifier.height(20.dp))
 
-            SectionLabel("Category", Modifier.padding(horizontal = 0.dp)); Spacer(Modifier.height(8.dp))
+            SectionLabel(stringResource(Res.string.document_category), Modifier.padding(horizontal = 0.dp)); Spacer(Modifier.height(8.dp))
             LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 items(DocCategory.entries) { cat -> CategoryChip(cat, active = category == cat, onClick = { category = cat }) }
             }
             Spacer(Modifier.height(20.dp))
 
-            SectionLabel("Expiry · optional", Modifier.padding(horizontal = 0.dp)); Spacer(Modifier.height(8.dp))
+            SectionLabel(stringResource(Res.string.expiry_optional), Modifier.padding(horizontal = 0.dp)); Spacer(Modifier.height(8.dp))
             EditField {
                 Row(Modifier.clickable { showDatePicker = true }, verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                     Icon(LumaIcons.Calendar, null, tint = c.accent, modifier = Modifier.size(18.dp))
-                    Text(expiry ?: "Tap to pick a date", fontFamily = LumaUi, fontSize = 15.sp, color = if (expiry != null) c.text else c.textMute, modifier = Modifier.weight(1f))
-                    if (expiry != null) Text("Clear", fontFamily = LumaUi, fontSize = 13.sp, color = c.accent, modifier = Modifier.clickable { expiry = null })
+                    Text(expiry ?: stringResource(Res.string.tap_to_pick_date), fontFamily = LumaUi, fontSize = 15.sp, color = if (expiry != null) c.text else c.textMute, modifier = Modifier.weight(1f))
+                    if (expiry != null) Text(stringResource(Res.string.action_clear), fontFamily = LumaUi, fontSize = 13.sp, color = c.accent, modifier = Modifier.clickable { expiry = null })
                 }
             }
             Spacer(Modifier.height(20.dp))
 
-            SectionLabel("Notes", Modifier.padding(horizontal = 0.dp)); Spacer(Modifier.height(8.dp))
+            SectionLabel(stringResource(Res.string.notes_label), Modifier.padding(horizontal = 0.dp)); Spacer(Modifier.height(8.dp))
             Box(Modifier.fillMaxWidth().height(140.dp).clip(RoundedCornerShape(14.dp)).background(c.bg2).border(1.dp, c.hairline, RoundedCornerShape(14.dp)).padding(16.dp)) {
-                if (notes.isEmpty()) Text("Add reminders, reference numbers, renewal steps…", color = c.textMute, fontFamily = LumaUi, fontSize = 14.sp)
+                if (notes.isEmpty()) Text(stringResource(Res.string.notes_edit_placeholder), color = c.textMute, fontFamily = LumaUi, fontSize = 14.sp)
                 BasicTextField(value = notes, onValueChange = { notes = it.take(500) }, textStyle = TextStyle(color = c.text, fontFamily = LumaUi, fontSize = 14.sp, lineHeight = 21.sp), cursorBrush = SolidColor(c.accent), modifier = Modifier.fillMaxSize())
             }
             Spacer(Modifier.height(16.dp))
             Row(Modifier.fillMaxWidth().clip(RoundedCornerShape(12.dp)).background(c.accent.copy(alpha = 0.06f)).border(1.dp, c.accent.copy(alpha = 0.13f), RoundedCornerShape(12.dp)).padding(14.dp), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                 Icon(LumaIcons.Lock, null, tint = c.accent, modifier = Modifier.size(14.dp))
-                Text("Notes are encrypted at rest and synced to your Google Drive. Only you can read them.", fontFamily = LumaUi, fontSize = 11.5.sp, lineHeight = 17.sp, color = c.textDim)
+                Text(stringResource(Res.string.notes_encrypted_note), fontFamily = LumaUi, fontSize = 11.5.sp, lineHeight = 17.sp, color = c.textDim)
             }
         }
     }

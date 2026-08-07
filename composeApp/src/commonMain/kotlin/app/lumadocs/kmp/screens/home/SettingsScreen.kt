@@ -56,6 +56,49 @@ import app.lumadocs.kmp.ui.SettingRow
 import app.lumadocs.kmp.ui.SettingsGroup
 import app.lumadocs.kmp.viewmodels.BackupPhase
 import app.lumadocs.kmp.viewmodels.SettingsViewModel
+import lumadocs.composeapp.generated.resources.Res
+import lumadocs.composeapp.generated.resources.action_continue
+import lumadocs.composeapp.generated.resources.app_lock_sub
+import lumadocs.composeapp.generated.resources.app_lock_title
+import lumadocs.composeapp.generated.resources.app_version_note
+import lumadocs.composeapp.generated.resources.badge_local
+import lumadocs.composeapp.generated.resources.badge_synced
+import lumadocs.composeapp.generated.resources.cancel
+import lumadocs.composeapp.generated.resources.change_pin
+import lumadocs.composeapp.generated.resources.disconnect
+import lumadocs.composeapp.generated.resources.disconnect_drive_message
+import lumadocs.composeapp.generated.resources.disconnect_drive_title
+import lumadocs.composeapp.generated.resources.drive_connected_sub
+import lumadocs.composeapp.generated.resources.drive_not_connected_sub
+import lumadocs.composeapp.generated.resources.encryption
+import lumadocs.composeapp.generated.resources.encryption_off
+import lumadocs.composeapp.generated.resources.encryption_on
+import lumadocs.composeapp.generated.resources.export_count
+import lumadocs.composeapp.generated.resources.export_vault
+import lumadocs.composeapp.generated.resources.export_vault_confirm_message
+import lumadocs.composeapp.generated.resources.export_vault_confirm_title
+import lumadocs.composeapp.generated.resources.export_vault_sub
+import lumadocs.composeapp.generated.resources.exporting
+import lumadocs.composeapp.generated.resources.google_drive
+import lumadocs.composeapp.generated.resources.group_app
+import lumadocs.composeapp.generated.resources.group_cloud_sync
+import lumadocs.composeapp.generated.resources.group_security
+import lumadocs.composeapp.generated.resources.guest
+import lumadocs.composeapp.generated.resources.import_backup
+import lumadocs.composeapp.generated.resources.import_backup_sub
+import lumadocs.composeapp.generated.resources.import_count
+import lumadocs.composeapp.generated.resources.importing_backup
+import lumadocs.composeapp.generated.resources.language
+import lumadocs.composeapp.generated.resources.loading_files
+import lumadocs.composeapp.generated.resources.local_only
+import lumadocs.composeapp.generated.resources.notifications
+import lumadocs.composeapp.generated.resources.notifications_schedule
+import lumadocs.composeapp.generated.resources.reading_backup
+import lumadocs.composeapp.generated.resources.select_files_to_export
+import lumadocs.composeapp.generated.resources.select_files_to_import
+import lumadocs.composeapp.generated.resources.settings
+import lumadocs.composeapp.generated.resources.settings_headline
+import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.viewmodel.koinViewModel
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
@@ -82,8 +125,8 @@ internal fun SettingsScreen(
 
     val connected = settingsState.isGoogleDriveConnected
     val user = settingsState.currentUser
-    val name = user?.userName?.takeIf { it.isNotBlank() } ?: "Guest"
-    val email = user?.userEmail?.takeIf { it.isNotBlank() } ?: "Local only · not signed in"
+    val name = user?.userName?.takeIf { it.isNotBlank() } ?: stringResource(Res.string.guest)
+    val email = user?.userEmail?.takeIf { it.isNotBlank() } ?: stringResource(Res.string.local_only)
 
     Column(
         modifier = modifier
@@ -93,8 +136,8 @@ internal fun SettingsScreen(
             .padding(top = paddingValues.calculateTopPadding() + 8.dp, bottom = paddingValues.calculateBottomPadding() + 96.dp),
     ) {
         Column(Modifier.padding(start = 20.dp, end = 20.dp, top = 8.dp, bottom = 24.dp)) {
-            Text("SETTINGS", fontFamily = LumaMono, fontSize = 10.5.sp, color = c.textMute, letterSpacing = 1.6.sp)
-            Text("Your vault.", fontFamily = LumaDisplay, fontSize = 34.sp, letterSpacing = (-1).sp, color = c.text, modifier = Modifier.padding(top = 4.dp))
+            Text(stringResource(Res.string.settings).uppercase(), fontFamily = LumaMono, fontSize = 10.5.sp, color = c.textMute, letterSpacing = 1.6.sp)
+            Text(stringResource(Res.string.settings_headline), fontFamily = LumaDisplay, fontSize = 34.sp, letterSpacing = (-1).sp, color = c.text, modifier = Modifier.padding(top = 4.dp))
         }
 
         // Account card
@@ -109,7 +152,7 @@ internal fun SettingsScreen(
                 Text(email, fontFamily = LumaMono, fontSize = 12.sp, color = c.textMute, modifier = Modifier.padding(top = 2.dp))
             }
             Box(Modifier.clip(RoundedCornerShape(999.dp)).background(c.accentDim).padding(horizontal = 10.dp, vertical = 4.dp)) {
-                Text(if (connected) "SYNCED" else "LOCAL", fontFamily = LumaMono, fontSize = 10.5.sp, fontWeight = FontWeight.SemiBold, color = c.accentHi, letterSpacing = 0.4.sp)
+                Text(stringResource(if (connected) Res.string.badge_synced else Res.string.badge_local), fontFamily = LumaMono, fontSize = 10.5.sp, fontWeight = FontWeight.SemiBold, color = c.accentHi, letterSpacing = 0.4.sp)
             }
         }
 
@@ -118,20 +161,20 @@ internal fun SettingsScreen(
         }
 
         // Security
-        SettingsGroup("Security") {
-            SettingRow(LumaIcons.Face, "App Lock", sub = "Unlock the vault with PIN / biometrics", trailing = {
+        SettingsGroup(stringResource(Res.string.group_security)) {
+            SettingRow(LumaIcons.Face, stringResource(Res.string.app_lock_title), sub = stringResource(Res.string.app_lock_sub), trailing = {
                 LumaToggle(on = appLockEnabled, onChange = { enabled ->
                     PinFlowState.start(if (enabled) PinFlowRequest.CREATE else PinFlowRequest.DISABLE)
                 })
             })
             if (appLockEnabled) {
-                SettingRow(LumaIcons.Key, "Change PIN", chevron = true, onClick = { PinFlowState.start(PinFlowRequest.CHANGE) })
+                SettingRow(LumaIcons.Key, stringResource(Res.string.change_pin), chevron = true, onClick = { PinFlowState.start(PinFlowRequest.CHANGE) })
             }
             // Applies to documents added from now on; anything already in the vault keeps the
             // state it was stored with.
             SettingRow(
-                LumaIcons.Shield, "Encryption",
-                sub = if (encryptUploads) "AES-256 · new photos encrypted" else "New photos stored unencrypted",
+                LumaIcons.Shield, stringResource(Res.string.encryption),
+                sub = stringResource(if (encryptUploads) Res.string.encryption_on else Res.string.encryption_off),
                 isLast = true,
                 trailing = {
                     LumaToggle(on = encryptUploads, onChange = { settingsViewModel.setEncryptNewUploads(it) })
@@ -140,30 +183,29 @@ internal fun SettingsScreen(
         }
 
         // Cloud & Sync
-        SettingsGroup("Cloud & Sync") {
+        SettingsGroup(stringResource(Res.string.group_cloud_sync)) {
             SettingRow(
-                LumaIcons.Cloud, "Google Drive",
-                sub = if (connected) "Encrypted · connected" else "Not connected",
+                LumaIcons.Cloud, stringResource(Res.string.google_drive),
+                sub = stringResource(if (connected) Res.string.drive_connected_sub else Res.string.drive_not_connected_sub),
                 trailing = {
                     if (settingsState.isLoading) CircularProgressIndicator(Modifier.size(20.dp), color = c.accent, strokeWidth = 2.dp)
                     else LumaToggle(on = connected, onChange = { if (connected) showClearSessionsConfirm = true else settingsViewModel.onGoogleDriveToggle() })
                 },
             )
-            SettingRow(LumaIcons.Download, "Export vault archive", sub = "Encrypted .lumavault file", chevron = true, onClick = { showExportConfirm = true })
-            SettingRow(LumaIcons.Folder, "Import backup", sub = "Restore from a .lumavault file", chevron = true, isLast = true, onClick = { backupFilePicker() })
+            SettingRow(LumaIcons.Download, stringResource(Res.string.export_vault), sub = stringResource(Res.string.export_vault_sub), chevron = true, onClick = { showExportConfirm = true })
+            SettingRow(LumaIcons.Folder, stringResource(Res.string.import_backup), sub = stringResource(Res.string.import_backup_sub), chevron = true, isLast = true, onClick = { backupFilePicker() })
         }
 
         // App
-        SettingsGroup("App") {
-            SettingRow(LumaIcons.Globe, "Language", detail = if (languageCode == "ru") "Русский" else "English", chevron = true, onClick = {
+        SettingsGroup(stringResource(Res.string.group_app)) {
+            SettingRow(LumaIcons.Globe, stringResource(Res.string.language), detail = if (languageCode == "ru") "Русский" else "English", chevron = true, onClick = {
                 languageViewModel.switchLanguage(if (languageCode == "ru") "en" else "ru")
             })
-            SettingRow(LumaIcons.Bell, "Notifications", detail = "90 · 30 · 7 · 1 day", chevron = true)
-            SettingRow(LumaIcons.Sparkle, "OCR & Smart Search", detail = "On", chevron = true, isLast = true)
+            SettingRow(LumaIcons.Bell, stringResource(Res.string.notifications), detail = stringResource(Res.string.notifications_schedule), chevron = true, isLast = true)
         }
 
         Text(
-            "LumaDocs v1.0 · Build 2026.4.18\nMade privately. Encrypted always.",
+            stringResource(Res.string.app_version_note),
             fontFamily = LumaMono, fontSize = 11.sp, color = c.textMute, letterSpacing = 0.4.sp,
             textAlign = androidx.compose.ui.text.style.TextAlign.Center,
             modifier = Modifier.fillMaxWidth().padding(vertical = 24.dp),
@@ -173,28 +215,28 @@ internal fun SettingsScreen(
     // ── Backup / session dialogs (behavior preserved from the original) ──
     if (showExportConfirm) {
         LumaConfirm(
-            title = "Export vault archive?",
-            message = "Choose which documents to include in an encrypted backup file.",
-            confirm = "Continue", confirmColor = c.accent,
+            title = stringResource(Res.string.export_vault_confirm_title),
+            message = stringResource(Res.string.export_vault_confirm_message),
+            confirm = stringResource(Res.string.action_continue), confirmColor = c.accent,
             onConfirm = { showExportConfirm = false; settingsViewModel.prepareExport() },
             onDismiss = { showExportConfirm = false },
         )
     }
     if (showClearSessionsConfirm) {
         LumaConfirm(
-            title = "Disconnect Google Drive?",
-            message = "This signs you out and clears every cached file and the app lock on this device.",
-            confirm = "Disconnect", confirmColor = c.err,
+            title = stringResource(Res.string.disconnect_drive_title),
+            message = stringResource(Res.string.disconnect_drive_message),
+            confirm = stringResource(Res.string.disconnect), confirmColor = c.err,
             onConfirm = { showClearSessionsConfirm = false; settingsViewModel.clearAllSessions(); pinViewModel.disableLock() },
             onDismiss = { showClearSessionsConfirm = false },
         )
     }
 
     val loadingMessage = when (settingsState.backupPhase) {
-        BackupPhase.EXPORT_LOADING -> "Loading files…"
-        BackupPhase.EXPORTING -> "Exporting…"
-        BackupPhase.IMPORT_LOADING -> "Reading backup…"
-        BackupPhase.IMPORTING -> "Importing backup…"
+        BackupPhase.EXPORT_LOADING -> stringResource(Res.string.loading_files)
+        BackupPhase.EXPORTING -> stringResource(Res.string.exporting)
+        BackupPhase.IMPORT_LOADING -> stringResource(Res.string.reading_backup)
+        BackupPhase.IMPORTING -> stringResource(Res.string.importing_backup)
         else -> null
     }
     if (loadingMessage != null) BackupLoadingDialog(message = loadingMessage)
@@ -202,9 +244,9 @@ internal fun SettingsScreen(
     if (settingsState.backupPhase == BackupPhase.EXPORT_PREVIEW) {
         Dialog(onDismissRequest = { settingsViewModel.cancelBackupFlow() }, properties = DialogProperties(usePlatformDefaultWidth = false)) {
             BackupPreviewScreen(
-                title = "Select files to export",
+                title = stringResource(Res.string.select_files_to_export),
                 items = settingsState.exportPreviewFiles.map { BackupPreviewItem(it.id, it.name, it.mimeType, it.category) },
-                confirmLabel = { count -> "Export $count" },
+                confirmLabel = { count -> stringResource(Res.string.export_count, count) },
                 onConfirm = { ids -> settingsViewModel.exportSelectedFiles(ids) },
                 onCancel = { settingsViewModel.cancelBackupFlow() },
                 loadBytes = { item -> settingsViewModel.downloadExportFile(item.id) },
@@ -214,9 +256,9 @@ internal fun SettingsScreen(
     if (settingsState.backupPhase == BackupPhase.IMPORT_PREVIEW) {
         Dialog(onDismissRequest = { settingsViewModel.cancelBackupFlow() }, properties = DialogProperties(usePlatformDefaultWidth = false)) {
             BackupPreviewScreen(
-                title = "Select files to import",
+                title = stringResource(Res.string.select_files_to_import),
                 items = settingsState.importPreviewFiles.mapIndexed { i, meta -> BackupPreviewItem(i.toString(), meta.name, meta.mimeType, meta.category) },
-                confirmLabel = { count -> "Import $count" },
+                confirmLabel = { count -> stringResource(Res.string.import_count, count) },
                 onConfirm = { ids -> settingsViewModel.importSelectedFiles(ids.map { it.toInt() }.toSet()) },
                 onCancel = { settingsViewModel.cancelBackupFlow() },
                 loadBytes = { item -> settingsViewModel.importFileBytes(item.id.toInt()) },
@@ -241,6 +283,6 @@ private fun LumaConfirm(
         title = { Text(title, fontFamily = LumaUi, fontWeight = FontWeight.SemiBold) },
         text = { Text(message, fontFamily = LumaUi) },
         confirmButton = { TextButton(onClick = onConfirm) { Text(confirm, color = confirmColor, fontWeight = FontWeight.SemiBold) } },
-        dismissButton = { TextButton(onClick = onDismiss) { Text("Cancel", color = c.textDim) } },
+        dismissButton = { TextButton(onClick = onDismiss) { Text(stringResource(Res.string.cancel), color = c.textDim) } },
     )
 }

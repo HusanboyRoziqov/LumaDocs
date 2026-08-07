@@ -54,19 +54,45 @@ import app.lumadocs.kmp.ui.DocCategory
 import app.lumadocs.kmp.ui.DocThumb
 import app.lumadocs.kmp.ui.PillButton
 import app.lumadocs.kmp.ui.ThumbSize
+import lumadocs.composeapp.generated.resources.Res
+import lumadocs.composeapp.generated.resources.action_continue
+import lumadocs.composeapp.generated.resources.days_count
+import lumadocs.composeapp.generated.resources.get_started
+import lumadocs.composeapp.generated.resources.onb1_body
+import lumadocs.composeapp.generated.resources.onb1_title
+import lumadocs.composeapp.generated.resources.onb2_body
+import lumadocs.composeapp.generated.resources.onb2_kicker
+import lumadocs.composeapp.generated.resources.onb2_title
+import lumadocs.composeapp.generated.resources.onb3_body
+import lumadocs.composeapp.generated.resources.onb3_kicker
+import lumadocs.composeapp.generated.resources.onb3_title
+import lumadocs.composeapp.generated.resources.onb4_body
+import lumadocs.composeapp.generated.resources.onb4_kicker
+import lumadocs.composeapp.generated.resources.onb4_title
+import lumadocs.composeapp.generated.resources.onb_brand
+import lumadocs.composeapp.generated.resources.onb_expires_in
+import lumadocs.composeapp.generated.resources.onb_skip
+import lumadocs.composeapp.generated.resources.sample_boarding
+import lumadocs.composeapp.generated.resources.sample_lease
+import lumadocs.composeapp.generated.resources.sample_passport
+import lumadocs.composeapp.generated.resources.sample_visa
+import org.jetbrains.compose.resources.StringResource
+import org.jetbrains.compose.resources.pluralStringResource
+import org.jetbrains.compose.resources.stringResource
 
 private data class OnbSlide(
-    val kicker: String,
-    val title: String,
-    val body: String,
+    val kicker: StringResource,
+    val title: StringResource,
+    val body: StringResource,
     val art: String,
 )
 
+/** Slide copy lives in string resources so the intro speaks the user's language. */
 private val slides = listOf(
-    OnbSlide("LUMADOCS", "Your\ndigital safe.", "Scan, encrypt, and store your most important documents — passports, IDs, records — in one private vault.", "vault"),
-    OnbSlide("FEATURE · 01", "Scan any\ndocument.", "Auto edge detection and enhancement. Stack multi-page contracts, IDs, and reports into a single file.", "scan"),
-    OnbSlide("FEATURE · 02", "End-to-end\nencrypted.", "AES-256 locally. Face ID to unlock. Everything syncs to your Google Drive encrypted — only you hold the key.", "lock"),
-    OnbSlide("FEATURE · 03", "Never miss\na renewal.", "Set expiry dates on any document. Get alerts 90, 30, 7 and 1 day before a passport or visa expires.", "bell"),
+    OnbSlide(Res.string.onb_brand, Res.string.onb1_title, Res.string.onb1_body, "vault"),
+    OnbSlide(Res.string.onb2_kicker, Res.string.onb2_title, Res.string.onb2_body, "scan"),
+    OnbSlide(Res.string.onb3_kicker, Res.string.onb3_title, Res.string.onb3_body, "lock"),
+    OnbSlide(Res.string.onb4_kicker, Res.string.onb4_title, Res.string.onb4_body, "bell"),
 )
 
 @Composable
@@ -82,7 +108,7 @@ fun OnboardingPager(
     Column(Modifier.fillMaxSize().background(c.bg).safeDrawingPadding()) {
         Row(Modifier.fillMaxWidth().padding(horizontal = 20.dp, vertical = 14.dp), horizontalArrangement = Arrangement.End) {
             Text(
-                "Skip →", color = c.textMute, fontFamily = LumaUi, fontSize = 14.sp,
+                stringResource(Res.string.onb_skip), color = c.textMute, fontFamily = LumaUi, fontSize = 14.sp,
                 fontWeight = FontWeight.Medium, modifier = Modifier.clickable(onClick = onSkipIntro),
             )
         }
@@ -103,11 +129,11 @@ fun OnboardingPager(
         }
 
         Column(Modifier.padding(horizontal = 28.dp)) {
-            Text(s.kicker, fontFamily = LumaMono, fontSize = 10.5.sp, fontWeight = FontWeight.Medium, color = c.accent, letterSpacing = 1.8.sp)
+            Text(stringResource(s.kicker), fontFamily = LumaMono, fontSize = 10.5.sp, fontWeight = FontWeight.Medium, color = c.accent, letterSpacing = 1.8.sp)
             Spacer(Modifier.height(14.dp))
-            Text(s.title, fontFamily = LumaDisplay, fontStyle = FontStyle.Italic, fontSize = 44.sp, lineHeight = 44.sp, letterSpacing = (-1.5).sp, color = c.text)
+            Text(stringResource(s.title), fontFamily = LumaDisplay, fontStyle = FontStyle.Italic, fontSize = 44.sp, lineHeight = 44.sp, letterSpacing = (-1.5).sp, color = c.text)
             Spacer(Modifier.height(16.dp))
-            Text(s.body, fontFamily = LumaUi, fontSize = 15.sp, lineHeight = 22.sp, color = c.textDim)
+            Text(stringResource(s.body), fontFamily = LumaUi, fontSize = 15.sp, lineHeight = 22.sp, color = c.textDim)
             Spacer(Modifier.height(28.dp))
 
             Row(verticalAlignment = Alignment.CenterVertically) {
@@ -124,7 +150,7 @@ fun OnboardingPager(
                 }
                 Spacer(Modifier.weight(1f))
                 PillButton(
-                    text = if (isLast) "Get Started" else "Continue",
+                    text = stringResource(if (isLast) Res.string.get_started else Res.string.action_continue),
                     trailingIcon = LumaIcons.Forward,
                     onClick = { if (isLast) onGetStarted() else slide++ },
                 )
@@ -199,10 +225,10 @@ private fun BellArt() {
     val c = LocalLumaColors.current
     data class R(val doc: String, val label: String, val color: Color)
     val rows = listOf(
-        R("U.S. Passport", "90 days", c.textDim),
-        R("Apartment Lease", "30 days", c.accent),
-        R("Schengen Visa", "7 days", c.warn),
-        R("Boarding Pass", "1 day", c.err),
+        R(stringResource(Res.string.sample_passport), pluralStringResource(Res.plurals.days_count, 90, 90), c.textDim),
+        R(stringResource(Res.string.sample_lease), pluralStringResource(Res.plurals.days_count, 30, 30), c.accent),
+        R(stringResource(Res.string.sample_visa), pluralStringResource(Res.plurals.days_count, 7, 7), c.warn),
+        R(stringResource(Res.string.sample_boarding), pluralStringResource(Res.plurals.days_count, 1, 1), c.err),
     )
     Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
         rows.forEach { r ->
@@ -219,7 +245,7 @@ private fun BellArt() {
                 Box(Modifier.size(6.dp).clip(CircleShape).background(r.color))
                 Column(Modifier.weight(1f)) {
                     Text(r.doc, fontFamily = LumaUi, fontSize = 14.sp, fontWeight = FontWeight.Medium, color = c.text)
-                    Text("expires in ${r.label}", fontFamily = LumaMono, fontSize = 11.sp, color = c.textMute, modifier = Modifier.padding(top = 2.dp))
+                    Text(stringResource(Res.string.onb_expires_in, r.label), fontFamily = LumaMono, fontSize = 11.sp, color = c.textMute, modifier = Modifier.padding(top = 2.dp))
                 }
             }
         }

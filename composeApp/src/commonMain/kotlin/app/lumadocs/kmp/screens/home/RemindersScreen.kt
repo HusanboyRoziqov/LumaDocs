@@ -40,8 +40,24 @@ import app.lumadocs.kmp.theme.LumaUi
 import app.lumadocs.kmp.ui.DocFileThumb
 import app.lumadocs.kmp.ui.ThumbSize
 import app.lumadocs.kmp.ui.expiryDaysOf
-import app.lumadocs.kmp.ui.formatExpiry
+import app.lumadocs.kmp.ui.formatExpiryLocalized
 import app.lumadocs.kmp.viewmodels.DocumentsViewModel
+import lumadocs.composeapp.generated.resources.Res
+import lumadocs.composeapp.generated.resources.days_ago_short
+import lumadocs.composeapp.generated.resources.days_short
+import lumadocs.composeapp.generated.resources.nav_reminders
+import lumadocs.composeapp.generated.resources.rem_expired
+import lumadocs.composeapp.generated.resources.rem_later
+import lumadocs.composeapp.generated.resources.rem_within_30
+import lumadocs.composeapp.generated.resources.rem_within_7
+import lumadocs.composeapp.generated.resources.rem_within_90
+import lumadocs.composeapp.generated.resources.reminders_empty
+import lumadocs.composeapp.generated.resources.reminders_headline
+import lumadocs.composeapp.generated.resources.stat_due_30
+import lumadocs.composeapp.generated.resources.stat_expired
+import lumadocs.composeapp.generated.resources.stat_tracked
+import lumadocs.composeapp.generated.resources.today_short
+import org.jetbrains.compose.resources.stringResource
 
 @Composable
 internal fun RemindersScreen(
@@ -58,11 +74,11 @@ internal fun RemindersScreen(
 
     fun upcoming(range: IntRange) = withExpiry.filter { it.second in range }.sortedBy { it.second }
     val groups = listOf(
-        Triple("Within 7 days", c.warn, upcoming(0..7)),
-        Triple("Within 30 days", c.accent, upcoming(8..30)),
-        Triple("Within 90 days", c.textDim, upcoming(31..90)),
-        Triple("Later", c.textMute, withExpiry.filter { it.second > 90 }.sortedBy { it.second }),
-        Triple("Expired", c.err, expired),
+        Triple(stringResource(Res.string.rem_within_7), c.warn, upcoming(0..7)),
+        Triple(stringResource(Res.string.rem_within_30), c.accent, upcoming(8..30)),
+        Triple(stringResource(Res.string.rem_within_90), c.textDim, upcoming(31..90)),
+        Triple(stringResource(Res.string.rem_later), c.textMute, withExpiry.filter { it.second > 90 }.sortedBy { it.second }),
+        Triple(stringResource(Res.string.rem_expired), c.err, expired),
     )
     val expiredCount = expired.size
     val under30 = withExpiry.count { it.second in 0..30 }   
@@ -70,8 +86,8 @@ internal fun RemindersScreen(
 
     Column(modifier.fillMaxSize().background(c.bg).padding(top = 8.dp)) {
         Column(Modifier.padding(start = 20.dp, end = 20.dp, top = 8.dp)) {
-            Text("REMINDERS", fontFamily = LumaMono, fontSize = 10.5.sp, color = c.textMute, letterSpacing = 1.6.sp)
-            Text("What's expiring.", fontFamily = LumaDisplay, fontSize = 34.sp, letterSpacing = (-1).sp, color = c.text, modifier = Modifier.padding(top = 4.dp))
+            Text(stringResource(Res.string.nav_reminders).uppercase(), fontFamily = LumaMono, fontSize = 10.5.sp, color = c.textMute, letterSpacing = 1.6.sp)
+            Text(stringResource(Res.string.reminders_headline), fontFamily = LumaDisplay, fontSize = 34.sp, letterSpacing = (-1).sp, color = c.text, modifier = Modifier.padding(top = 4.dp))
         }
 
         Row(
@@ -81,11 +97,11 @@ internal fun RemindersScreen(
                 .border(1.dp, c.err.copy(alpha = 0.2f), RoundedCornerShape(16.dp)).padding(16.dp),
             horizontalArrangement = Arrangement.spacedBy(16.dp),
         ) {
-            SummaryStat("$expiredCount", "EXPIRED", Modifier.weight(1f))
+            SummaryStat("$expiredCount", stringResource(Res.string.stat_expired), Modifier.weight(1f))
             Box(Modifier.width(1.dp).height(48.dp).background(c.hairline))
-            SummaryStat("$under30", "DUE < 30 DAYS", Modifier.weight(1f))
+            SummaryStat("$under30", stringResource(Res.string.stat_due_30), Modifier.weight(1f))
             Box(Modifier.width(1.dp).height(48.dp).background(c.hairline))
-            SummaryStat("$totalExpiry", "TRACKED", Modifier.weight(1f))
+            SummaryStat("$totalExpiry", stringResource(Res.string.stat_tracked), Modifier.weight(1f))
         }
 
         LazyColumn(Modifier.fillMaxSize(), contentPadding = PaddingValues(bottom = 96.dp)) {
@@ -107,12 +123,12 @@ internal fun RemindersScreen(
                             DocFileThumb(file = f, size = ThumbSize.SM)
                             Column(Modifier.weight(1f)) {
                                 Text(f.name, fontFamily = LumaUi, fontSize = 14.sp, fontWeight = FontWeight.Medium, color = c.text, maxLines = 1, overflow = TextOverflow.Ellipsis)
-                                Text(formatExpiry(f.expiryDate), fontFamily = LumaMono, fontSize = 11.5.sp, color = c.textMute, letterSpacing = 0.3.sp, modifier = Modifier.padding(top = 3.dp))
+                                Text(formatExpiryLocalized(f.expiryDate), fontFamily = LumaMono, fontSize = 11.5.sp, color = c.textMute, letterSpacing = 0.3.sp, modifier = Modifier.padding(top = 3.dp))
                             }
                             val badge = when {
-                                days < 0 -> "${-days}d ago"
-                                days == 0 -> "today"
-                                else -> "${days}d"
+                                days < 0 -> stringResource(Res.string.days_ago_short, -days)
+                                days == 0 -> stringResource(Res.string.today_short)
+                                else -> stringResource(Res.string.days_short, days)
                             }
                             Box(Modifier.clip(RoundedCornerShape(8.dp)).background(color.copy(alpha = 0.1f)).padding(horizontal = 10.dp, vertical = 5.dp)) {
                                 Text(badge, fontFamily = LumaMono, fontSize = 12.sp, fontWeight = FontWeight.SemiBold, color = color, letterSpacing = 0.3.sp, maxLines = 1)
@@ -123,7 +139,7 @@ internal fun RemindersScreen(
                 }
             }
             if (withExpiry.isEmpty()) {
-                item { Box(Modifier.fillMaxWidth().padding(40.dp), contentAlignment = Alignment.Center) { Text("No documents have an expiry date yet.", color = c.textMute, fontFamily = LumaUi, fontSize = 14.sp) } }
+                item { Box(Modifier.fillMaxWidth().padding(40.dp), contentAlignment = Alignment.Center) { Text(stringResource(Res.string.reminders_empty), color = c.textMute, fontFamily = LumaUi, fontSize = 14.sp) } }
             }
         }
     }

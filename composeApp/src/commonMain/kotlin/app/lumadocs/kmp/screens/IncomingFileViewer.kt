@@ -34,6 +34,10 @@ import androidx.compose.material.icons.filled.Close
 import app.lumadocs.kmp.IncomingFile
 import app.lumadocs.kmp.theme.nBlack400
 import app.lumadocs.kmp.utils.decodeImageBitmap
+import lumadocs.composeapp.generated.resources.Res
+import lumadocs.composeapp.generated.resources.close
+import lumadocs.composeapp.generated.resources.size_kb
+import org.jetbrains.compose.resources.stringResource
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
@@ -111,7 +115,7 @@ fun IncomingFileViewer(
                         fontWeight = FontWeight.SemiBold
                     )
                     Text(
-                        text = "${file.bytes.size / 1024} KB",
+                        text = stringResource(Res.string.size_kb, file.bytes.size / 1024),
                         color = Color.Gray,
                         fontSize = 14.sp
                     )
@@ -129,7 +133,7 @@ fun IncomingFileViewer(
         ) {
             Icon(
                 imageVector = Icons.Filled.Close,
-                contentDescription = "Close",
+                contentDescription = stringResource(Res.string.close),
                 tint = Color.White,
                 modifier = Modifier.size(22.dp)
             )

@@ -79,6 +79,43 @@ import app.lumadocs.kmp.ui.ThumbSize
 import app.lumadocs.kmp.utils.decodeImageBitmap
 import app.lumadocs.kmp.viewmodels.AddScreenViewModel
 import app.lumadocs.kmp.viewmodels.SelectedFile
+import lumadocs.composeapp.generated.resources.Res
+import lumadocs.composeapp.generated.resources.action_clear
+import lumadocs.composeapp.generated.resources.action_remove_page
+import lumadocs.composeapp.generated.resources.add_from_camera
+import lumadocs.composeapp.generated.resources.add_from_camera_sub
+import lumadocs.composeapp.generated.resources.add_from_gallery
+import lumadocs.composeapp.generated.resources.add_from_gallery_sub
+import lumadocs.composeapp.generated.resources.add_image
+import lumadocs.composeapp.generated.resources.add_page_title
+import lumadocs.composeapp.generated.resources.document_category
+import lumadocs.composeapp.generated.resources.document_name_hint
+import lumadocs.composeapp.generated.resources.done
+import lumadocs.composeapp.generated.resources.expiry_optional
+import lumadocs.composeapp.generated.resources.field_name
+import lumadocs.composeapp.generated.resources.pages_added
+import lumadocs.composeapp.generated.resources.save_to_vault
+import lumadocs.composeapp.generated.resources.scan_auto
+import lumadocs.composeapp.generated.resources.scan_connect_drive_hint
+import lumadocs.composeapp.generated.resources.scan_default_name
+import lumadocs.composeapp.generated.resources.scan_edge_detected
+import lumadocs.composeapp.generated.resources.scan_flash
+import lumadocs.composeapp.generated.resources.scan_image_ready
+import lumadocs.composeapp.generated.resources.scan_live
+import lumadocs.composeapp.generated.resources.scan_manual
+import lumadocs.composeapp.generated.resources.scan_multipage_hint
+import lumadocs.composeapp.generated.resources.scan_new_document
+import lumadocs.composeapp.generated.resources.scan_pages_hint
+import lumadocs.composeapp.generated.resources.scan_pick_from_gallery
+import lumadocs.composeapp.generated.resources.scan_retake
+import lumadocs.composeapp.generated.resources.tap_to_pick_date
+import lumadocs.composeapp.generated.resources.type_pdf
+import lumadocs.composeapp.generated.resources.upload_dialog_title
+import lumadocs.composeapp.generated.resources.upload_keep_open
+import lumadocs.composeapp.generated.resources.upload_page_progress
+import lumadocs.composeapp.generated.resources.uploading
+import org.jetbrains.compose.resources.pluralStringResource
+import org.jetbrains.compose.resources.stringResource
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import org.koin.compose.viewmodel.koinViewModel
@@ -291,7 +328,11 @@ private fun ScanCameraStage(
                 ) {
                     Box(Modifier.size(6.dp).clip(CircleShape).background(c.accent).alpha(dotAlpha))
                     Text(
-                        if (embedded) "LIVE" else if (lastBitmap != null) "IMAGE READY" else "EDGE DETECTED",
+                        stringResource(
+                            if (embedded) Res.string.scan_live
+                            else if (lastBitmap != null) Res.string.scan_image_ready
+                            else Res.string.scan_edge_detected
+                        ),
                         fontFamily = LumaMono,
                         fontSize = 11.sp,
                         color = c.accent,
@@ -307,7 +348,7 @@ private fun ScanCameraStage(
                     contentAlignment = Alignment.Center,
                 ) {
                     Icon(
-                        LumaIcons.Flash, "Flash",
+                        LumaIcons.Flash, stringResource(Res.string.scan_flash),
                         tint = if (flashOn) Color(0xFF1A1408) else Color.White,
                         modifier = Modifier.size(18.dp),
                     )
@@ -322,7 +363,7 @@ private fun ScanCameraStage(
                         .background(Color(0x80000000)).padding(horizontal = 14.dp, vertical = 6.dp),
                 ) {
                     Text(
-                        "$pages page${if (pages > 1) "s" else ""} added",
+                        pluralStringResource(Res.plurals.pages_added, pages, pages),
                         fontFamily = LumaMono,
                         fontSize = 11.sp,
                         color = Color.White
@@ -339,7 +380,7 @@ private fun ScanCameraStage(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(
-                    "AUTO",
+                    stringResource(Res.string.scan_auto),
                     fontFamily = LumaMono,
                     fontSize = 11.sp,
                     fontWeight = FontWeight.SemiBold,
@@ -348,7 +389,7 @@ private fun ScanCameraStage(
                     modifier = Modifier.padding(horizontal = 12.dp).clickable { onMode(true) }
                 )
                 Text(
-                    "MANUAL",
+                    stringResource(Res.string.scan_manual),
                     fontFamily = LumaMono,
                     fontSize = 11.sp,
                     fontWeight = FontWeight.SemiBold,
@@ -357,7 +398,7 @@ private fun ScanCameraStage(
                     modifier = Modifier.padding(horizontal = 12.dp).clickable { onMode(false) }
                 )
                 Text(
-                    "PDF",
+                    stringResource(Res.string.type_pdf),
                     fontFamily = LumaMono,
                     fontSize = 11.sp,
                     fontWeight = FontWeight.SemiBold,
@@ -368,7 +409,7 @@ private fun ScanCameraStage(
             }
             if (!autoMode) {
                 Text(
-                    "Multi-page: shoot each page, then Done",
+                    stringResource(Res.string.scan_multipage_hint),
                     fontFamily = LumaUi, fontSize = 11.sp, color = Color(0x99FFFFFF),
                     modifier = Modifier.align(Alignment.CenterHorizontally).padding(top = 6.dp),
                 )
@@ -391,7 +432,7 @@ private fun ScanCameraStage(
                 ) {
                     Icon(
                         LumaIcons.Image,
-                        "Pick from gallery",
+                        stringResource(Res.string.scan_pick_from_gallery),
                         tint = Color.White,
                         modifier = Modifier.size(24.dp)
                     )
@@ -408,7 +449,7 @@ private fun ScanCameraStage(
                 // Done
                 Box(Modifier.width(56.dp), contentAlignment = Alignment.Center) {
                     Text(
-                        "Done",
+                        stringResource(Res.string.done),
                         fontFamily = LumaUi,
                         fontSize = 15.sp,
                         fontWeight = FontWeight.SemiBold,
@@ -458,10 +499,10 @@ private fun ScanSaveStage(
                 horizontalArrangement = Arrangement.spacedBy(6.dp),
             ) {
                 Icon(LumaIcons.Back, null, tint = c.textDim, modifier = Modifier.size(18.dp))
-                Text("Retake", color = c.textDim, fontFamily = LumaUi, fontSize = 15.sp)
+                Text(stringResource(Res.string.scan_retake), color = c.textDim, fontFamily = LumaUi, fontSize = 15.sp)
             }
             Text(
-                "New Document",
+                stringResource(Res.string.scan_new_document),
                 color = c.text,
                 fontFamily = LumaUi,
                 fontSize = 15.sp,
@@ -488,7 +529,7 @@ private fun ScanSaveStage(
                                 .clickable { onRemove(i) },
                             contentAlignment = Alignment.Center,
                         ) {
-                            Icon(LumaIcons.Close, "Remove page", tint = Color.White, modifier = Modifier.size(15.dp))
+                            Icon(LumaIcons.Close, stringResource(Res.string.action_remove_page), tint = Color.White, modifier = Modifier.size(15.dp))
                         }
                     }
                 }
@@ -497,7 +538,7 @@ private fun ScanSaveStage(
             }
             Spacer(Modifier.height(8.dp))
             Text(
-                "Tap a page to review & crop · + to add another",
+                stringResource(Res.string.scan_pages_hint),
                 fontFamily = LumaUi,
                 fontSize = 12.sp,
                 color = c.textMute
@@ -515,7 +556,7 @@ private fun ScanSaveStage(
                 ) {
                     Icon(LumaIcons.Cloud, null, tint = c.err, modifier = Modifier.size(16.dp))
                     Text(
-                        "Connect Google Drive in Settings to save. Tap to dismiss.",
+                        stringResource(Res.string.scan_connect_drive_hint),
                         color = c.textDim,
                         fontFamily = LumaUi,
                         fontSize = 12.sp
@@ -524,12 +565,12 @@ private fun ScanSaveStage(
                 Spacer(Modifier.height(16.dp))
             }
 
-            SectionLabel("Name", Modifier.padding(horizontal = 0.dp)); Spacer(Modifier.height(8.dp))
-            FieldBox { InlineField(name, "Document name", { name = it }) }
+            SectionLabel(stringResource(Res.string.field_name), Modifier.padding(horizontal = 0.dp)); Spacer(Modifier.height(8.dp))
+            FieldBox { InlineField(name, stringResource(Res.string.document_name_hint), { name = it }) }
             Spacer(Modifier.height(20.dp))
 
             SectionLabel(
-                "Category",
+                stringResource(Res.string.document_category),
                 Modifier.padding(horizontal = 0.dp)
             ); Spacer(Modifier.height(8.dp))
             LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -543,7 +584,7 @@ private fun ScanSaveStage(
             Spacer(Modifier.height(20.dp))
 
             SectionLabel(
-                "Expiry · optional",
+                stringResource(Res.string.expiry_optional),
                 Modifier.padding(horizontal = 0.dp)
             ); Spacer(Modifier.height(8.dp))
             FieldBox {
@@ -554,14 +595,14 @@ private fun ScanSaveStage(
                 ) {
                     Icon(LumaIcons.Calendar, null, tint = c.accent, modifier = Modifier.size(18.dp))
                     Text(
-                        expiry.ifBlank { "Tap to pick a date" },
+                        expiry.ifBlank { stringResource(Res.string.tap_to_pick_date) },
                         fontFamily = LumaUi,
                         fontSize = 15.sp,
                         color = if (expiry.isBlank()) c.textMute else c.text,
                         modifier = Modifier.weight(1f)
                     )
                     if (expiry.isNotBlank()) Text(
-                        "Clear",
+                        stringResource(Res.string.action_clear),
                         fontFamily = LumaUi,
                         fontSize = 13.sp,
                         color = c.accent,
@@ -583,9 +624,10 @@ private fun ScanSaveStage(
                     )
                 }
             } else {
+                val defaultName = stringResource(Res.string.scan_default_name)
                 PillButton(
-                    "Save to Vault",
-                    onClick = { onSave(name.ifBlank { "Scan" }, expiry) },
+                    stringResource(Res.string.save_to_vault),
+                    onClick = { onSave(name.ifBlank { defaultName }, expiry) },
                     leadingIcon = LumaIcons.Check,
                     modifier = Modifier.fillMaxWidth()
                 )
@@ -641,18 +683,18 @@ private fun UploadBlockingDialog(uploadedCount: Int, totalCount: Int) {
                 CircularProgressIndicator(Modifier.size(34.dp), color = c.accent, strokeWidth = 3.dp)
                 Spacer(Modifier.height(18.dp))
                 Text(
-                    "Saving to your vault",
+                    stringResource(Res.string.upload_dialog_title),
                     fontFamily = LumaUi, fontSize = 15.sp, fontWeight = FontWeight.SemiBold, color = c.text,
                 )
                 Spacer(Modifier.height(6.dp))
                 Text(
-                    if (totalCount > 1) "Page ${(uploadedCount + 1).coerceAtMost(totalCount)} of $totalCount"
-                    else "Uploading…",
+                    if (totalCount > 1) stringResource(Res.string.upload_page_progress, (uploadedCount + 1).coerceAtMost(totalCount), totalCount)
+                    else stringResource(Res.string.uploading),
                     fontFamily = LumaMono, fontSize = 12.sp, color = c.accentHi, letterSpacing = 0.4.sp,
                 )
                 Spacer(Modifier.height(14.dp))
                 Text(
-                    "Keep this screen open until it finishes.",
+                    stringResource(Res.string.upload_keep_open),
                     fontFamily = LumaUi, fontSize = 12.sp, color = c.textMute,
                 )
             }
@@ -678,13 +720,23 @@ private fun AddImageSheet(
     ) {
         Column(Modifier.fillMaxWidth().navigationBarsPadding().padding(horizontal = 20.dp).padding(bottom = 24.dp)) {
             Text(
-                "Add a page", fontFamily = LumaUi, fontSize = 15.sp,
+                stringResource(Res.string.add_page_title), fontFamily = LumaUi, fontSize = 15.sp,
                 fontWeight = FontWeight.SemiBold, color = c.text,
                 modifier = Modifier.padding(bottom = 16.dp),
             )
-            AddImageOption(LumaIcons.Image, "Choose from gallery", "Pick photos already on this device", onGallery)
+            AddImageOption(
+                LumaIcons.Image,
+                stringResource(Res.string.add_from_gallery),
+                stringResource(Res.string.add_from_gallery_sub),
+                onGallery,
+            )
             Spacer(Modifier.height(10.dp))
-            AddImageOption(LumaIcons.Camera, "Take a photo", "Open the camera and capture a new page", onCamera)
+            AddImageOption(
+                LumaIcons.Camera,
+                stringResource(Res.string.add_from_camera),
+                stringResource(Res.string.add_from_camera_sub),
+                onCamera,
+            )
         }
     }
 }
@@ -735,7 +787,7 @@ private fun AddPageCard(onClick: () -> Unit) {
             Icon(LumaIcons.Plus, null, tint = c.accent, modifier = Modifier.size(20.dp))
         }
         Spacer(Modifier.height(10.dp))
-        Text("Add Image", fontFamily = LumaUi, fontSize = 12.sp, color = c.accent)
+        Text(stringResource(Res.string.add_image), fontFamily = LumaUi, fontSize = 12.sp, color = c.accent)
     }
 }
 
@@ -772,7 +824,7 @@ private fun CapturedThumb(mimeType: String, bytes: ByteArray) {
             Icon(LumaIcons.Pdf, null, tint = c.accent, modifier = Modifier.size(34.dp))
             Spacer(Modifier.height(8.dp))
             Text(
-                "PDF",
+                stringResource(Res.string.type_pdf),
                 fontFamily = LumaMono,
                 fontSize = 11.sp,
                 color = c.textDim,

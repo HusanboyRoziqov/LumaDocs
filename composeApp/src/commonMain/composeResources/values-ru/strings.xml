@@ -73,6 +73,7 @@
     <string name="created_at">Создано:</string>
     <string name="delete">Удалить</string>
     <string name="edit">Редактировать</string>
+    <string name="share">Поделиться</string>
     <string name="cancel">Отмена</string>
     <string name="confirm">Подтвердить</string>
     <string name="ok">ОК</string>
@@ -99,6 +100,7 @@
     <string name="my_files">Мои файлы</string>
     <string name="upload">Загрузить</string>
     <string name="document_title">Название документа</string>
+    <string name="document_desc">Добавьте описание...</string>
     <string name="document_description">Описание (опционально)</string>
     <string name="save">Сохранить</string>
     <string name="file_name">Имя файла</string>
@@ -139,6 +141,8 @@
     <string name="error_drive_access">Не удалось подключиться к Google Drive. Переподключитесь в настройках.</string>
     <string name="error_upload_failed">Не удалось загрузить файл. Попробуйте ещё раз.</string>
     <string name="error_load_failed">Не удалось загрузить документы. Попробуйте ещё раз.</string>
+    <string name="error_save_failed">Не удалось сохранить изменения. Попробуйте ещё раз.</string>
+    <string name="changes_saved">Изменения сохранены</string>
     <string name="error_delete_failed">Не удалось удалить файл. Попробуйте ещё раз.</string>
     <string name="error_preview_failed">Не удалось открыть этот файл. Попробуйте ещё раз.</string>
     <string name="error_folder_create_failed">Не удалось создать папку. Попробуйте ещё раз.</string>
@@ -227,5 +231,230 @@
     <!-- Document detail -->
     <string name="document_label">Документ</string>
     <string name="field_name">Название</string>
+
+    <!-- ─────────── Candlelight UI ─────────── -->
+
+    <!-- Shared actions -->
+    <string name="action_continue">Продолжить</string>
+    <string name="action_clear">Очистить</string>
+    <string name="action_remove_page">Удалить страницу</string>
+    <string name="action_backspace">Стереть</string>
+
+    <!-- Categories -->
+    <string name="cat_identity">Личные</string>
+    <string name="cat_travel">Поездки</string>
+    <string name="cat_medical">Медицина</string>
+    <string name="cat_financial">Финансы</string>
+    <string name="cat_education">Образование</string>
+    <string name="cat_legal">Юридические</string>
+    <string name="cat_other">Прочее</string>
+
+    <!-- File types -->
+    <string name="type_image">Изображение</string>
+    <string name="type_pdf">PDF</string>
+    <string name="type_document">Документ</string>
+    <string name="type_spreadsheet">Таблица</string>
+    <string name="type_presentation">Презентация</string>
+    <string name="type_file">Файл</string>
+
+    <!-- Short month names, in calendar order -->
+    <string-array name="months_short">
+        <item>янв</item>
+        <item>фев</item>
+        <item>мар</item>
+        <item>апр</item>
+        <item>мая</item>
+        <item>июн</item>
+        <item>июл</item>
+        <item>авг</item>
+        <item>сен</item>
+        <item>окт</item>
+        <item>ноя</item>
+        <item>дек</item>
+    </string-array>
+
+    <!-- Counts -->
+    <plurals name="days_count">
+        <item quantity="one">%1$d день</item>
+        <item quantity="few">%1$d дня</item>
+        <item quantity="many">%1$d дней</item>
+        <item quantity="other">%1$d дня</item>
+    </plurals>
+    <plurals name="pages_added">
+        <item quantity="one">добавлена %1$d страница</item>
+        <item quantity="few">добавлено %1$d страницы</item>
+        <item quantity="many">добавлено %1$d страниц</item>
+        <item quantity="other">добавлено %1$d страницы</item>
+    </plurals>
+    <plurals name="documents_to_upload">
+        <item quantity="one">%1$d документ к загрузке</item>
+        <item quantity="few">%1$d документа к загрузке</item>
+        <item quantity="many">%1$d документов к загрузке</item>
+        <item quantity="other">%1$d документа к загрузке</item>
+    </plurals>
+    <plurals name="items_count">
+        <item quantity="one">%1$d файл</item>
+        <item quantity="few">%1$d файла</item>
+        <item quantity="many">%1$d файлов</item>
+        <item quantity="other">%1$d файла</item>
+    </plurals>
+    <plurals name="matches_count">
+        <item quantity="one">%1$d совпадение</item>
+        <item quantity="few">%1$d совпадения</item>
+        <item quantity="many">%1$d совпадений</item>
+        <item quantity="other">%1$d совпадения</item>
+    </plurals>
+    <string name="today_short">сегодня</string>
+    <string name="unit_kb">%1$s КБ</string>
+    <string name="unit_mb">%1$s МБ</string>
+    <string name="days_short">%1$d дн.</string>
+    <string name="days_ago_short">%1$d дн. назад</string>
+    <string name="size_kb">%1$d КБ</string>
+
+    <!-- Onboarding -->
+    <string name="onb_brand">LUMADOCS</string>
+    <string name="onb1_title">Ваш цифровой\nсейф.</string>
+    <string name="onb1_body">Сканируйте, шифруйте и храните самые важные документы — паспорта, удостоверения, справки — в одном личном хранилище.</string>
+    <string name="onb2_kicker">ВОЗМОЖНОСТЬ · 01</string>
+    <string name="onb2_title">Сканируйте\nлюбой документ.</string>
+    <string name="onb2_body">Автоматическое определение краёв и улучшение. Объединяйте многостраничные договоры, документы и отчёты в один файл.</string>
+    <string name="onb3_kicker">ВОЗМОЖНОСТЬ · 02</string>
+    <string name="onb3_title">Сквозное\nшифрование.</string>
+    <string name="onb3_body">AES-256 на устройстве. Разблокировка по Face ID. Всё синхронизируется с Google Drive в зашифрованном виде — ключ только у вас.</string>
+    <string name="onb4_kicker">ВОЗМОЖНОСТЬ · 03</string>
+    <string name="onb4_title">Не пропустите\nпродление.</string>
+    <string name="onb4_body">Указывайте срок действия для любого документа. Получайте напоминания за 90, 30, 7 и 1 день до окончания паспорта или визы.</string>
+    <string name="onb_skip">Пропустить →</string>
+    <string name="onb_expires_in">истекает через %1$s</string>
+    <string name="sample_passport">Загранпаспорт</string>
+    <string name="sample_lease">Договор аренды</string>
+    <string name="sample_visa">Шенгенская виза</string>
+    <string name="sample_boarding">Посадочный талон</string>
+
+    <!-- Sign-in -->
+    <string name="start_kicker">ВЫБЕРИТЕ СПОСОБ ВХОДА</string>
+    <string name="start_title">Войдите или останьтесь инкогнито.</string>
+    <string name="start_body">Войдите, чтобы синхронизировать зашифрованные копии между устройствами. В гостевом режиме всё остаётся только на этом телефоне.</string>
+    <string name="start_legal">Продолжая, вы принимаете Условия и Политику конфиденциальности. Ваши документы шифруются до того, как покинут устройство.</string>
+
+    <!-- Bottom navigation -->
+    <string name="nav_search">Поиск</string>
+    <string name="nav_reminders">Напоминания</string>
+
+    <!-- Vault -->
+    <string name="brand_luma_docs">LUMA DOCS</string>
+    <string name="greeting_morning">Доброе утро</string>
+    <string name="greeting_afternoon">Добрый день</string>
+    <string name="greeting_evening">Добрый вечер</string>
+    <string name="tap_to_upload">Нажмите для загрузки · %1$s</string>
+    <string name="expiring_soon">Скоро истекает</string>
+    <string name="see_all">Все →</string>
+    <string name="categories">Категории</string>
+    <string name="all_documents">Все документы</string>
+    <string name="vault_loading">Загрузка хранилища…</string>
+    <string name="vault_empty">Пока нет документов. Нажмите «Скан», чтобы добавить.</string>
+    <string name="folder_items">Папка · %1$s</string>
+    <string name="vault_expires_suffix"> · до %1$s</string>
+    <string name="pending_size">В очереди · %1$s</string>
+    <string name="pending_upload_size">Ожидает загрузки · %1$s</string>
+    <string name="badge_pending">В ОЧЕРЕДИ</string>
+    <string name="badge_synced">СИНХР.</string>
+    <string name="badge_local">ЛОКАЛЬНО</string>
+
+    <!-- Reminders -->
+    <string name="reminders_headline">Что истекает.</string>
+    <string name="rem_within_7">В течение 7 дней</string>
+    <string name="rem_within_30">В течение 30 дней</string>
+    <string name="rem_within_90">В течение 90 дней</string>
+    <string name="rem_later">Позже</string>
+    <string name="rem_expired">Истёк срок</string>
+    <string name="stat_expired">ИСТЕКЛИ</string>
+    <string name="stat_due_30">МЕНЕЕ 30 ДНЕЙ</string>
+    <string name="stat_tracked">ОТСЛЕЖИВАЕТСЯ</string>
+    <string name="reminders_empty">Ни у одного документа не указан срок действия.</string>
+
+    <!-- Search -->
+    <string name="search_placeholder">Поиск по названию, тегу или тексту…</string>
+    <string name="search_recent">Недавние</string>
+    <string name="search_recent_empty">Здесь появятся ваши недавние запросы.</string>
+    <string name="search_smart_suggestions">Подсказки</string>
+    <string name="search_no_matches">Ничего не найдено</string>
+    <string name="search_match_label">%1$s · совпадение</string>
+    <string name="sug_expiring_month">Истекает в этом месяце</string>
+    <string name="sug_photos">Фото</string>
+    <string name="sug_encrypted">Зашифрованные</string>
+    <string name="sug_has_expiry">Со сроком действия</string>
+
+    <!-- Scan / new document -->
+    <string name="scan_live">СЪЁМКА</string>
+    <string name="scan_image_ready">ФОТО ГОТОВО</string>
+    <string name="scan_edge_detected">КРАЯ НАЙДЕНЫ</string>
+    <string name="scan_flash">Вспышка</string>
+    <string name="scan_auto">АВТО</string>
+    <string name="scan_manual">ВРУЧНУЮ</string>
+    <string name="scan_multipage_hint">Многостраничный режим: снимите каждую страницу и нажмите «Готово»</string>
+    <string name="scan_pick_from_gallery">Выбрать из галереи</string>
+    <string name="scan_retake">Переснять</string>
+    <string name="scan_new_document">Новый документ</string>
+    <string name="scan_pages_hint">Нажмите на страницу, чтобы обрезать · + чтобы добавить ещё</string>
+    <string name="scan_connect_drive_hint">Подключите Google Drive в настройках, чтобы сохранить. Нажмите, чтобы скрыть.</string>
+    <string name="scan_default_name">Скан</string>
+    <string name="document_name_hint">Название документа</string>
+    <string name="expiry_optional">Срок действия · необязательно</string>
+    <string name="save_to_vault">Сохранить в хранилище</string>
+    <string name="add_image">Добавить фото</string>
+    <string name="add_page_title">Добавить страницу</string>
+    <string name="add_from_gallery">Выбрать из галереи</string>
+    <string name="add_from_gallery_sub">Фотографии, которые уже есть на устройстве</string>
+    <string name="add_from_camera">Сделать фото</string>
+    <string name="add_from_camera_sub">Открыть камеру и снять новую страницу</string>
+    <string name="upload_dialog_title">Сохранение в хранилище</string>
+    <string name="upload_page_progress">Страница %1$d из %2$d</string>
+    <string name="upload_keep_open">Не закрывайте экран до завершения.</string>
+    <string name="saved_offline">Сохранено офлайн — загрузится при подключении</string>
+
+    <!-- Document detail -->
+    <string name="meta_category">КАТЕГОРИЯ</string>
+    <string name="meta_type">ТИП</string>
+    <string name="meta_expires">ИСТЕКАЕТ</string>
+    <string name="meta_security">ЗАЩИТА</string>
+    <string name="meta_notes">ЗАМЕТКИ</string>
+    <string name="encrypted_aes">Зашифровано · AES-256</string>
+    <string name="not_encrypted">Без шифрования</string>
+    <string name="detail_expires_in"> · через %1$d дн.</string>
+    <string name="page_indicator">%1$d / %2$d</string>
+    <string name="notes_placeholder">Добавьте заметку — напоминания, номера, порядок продления…</string>
+    <string name="notes_edit_placeholder">Напоминания, номера, порядок продления…</string>
+    <string name="notes_encrypted_note">Заметки хранятся в зашифрованном виде и синхронизируются с вашим Google Drive. Их видите только вы.</string>
+    <string name="notes_label">Заметки</string>
+    <string name="edit_document">Изменить документ</string>
+    <string name="delete_document_title">Удалить документ?</string>
+    <string name="delete_document_message">Документ будет безвозвратно удалён из хранилища и Google Drive.</string>
+
+    <!-- Settings -->
+    <string name="settings_headline">Ваше хранилище.</string>
+    <string name="guest">Гость</string>
+    <string name="local_only">Только на устройстве · вход не выполнен</string>
+    <string name="group_security">Безопасность</string>
+    <string name="group_cloud_sync">Облако и синхронизация</string>
+    <string name="group_app">Приложение</string>
+    <string name="app_lock_title">Блокировка приложения</string>
+    <string name="app_lock_sub">Разблокировка по PIN-коду или биометрии</string>
+    <string name="encryption">Шифрование</string>
+    <string name="encryption_on">AES-256 · новые фото шифруются</string>
+    <string name="encryption_off">Новые фото сохраняются без шифрования</string>
+    <string name="drive_connected_sub">Зашифровано · подключено</string>
+    <string name="drive_not_connected_sub">Не подключено</string>
+    <string name="export_vault">Экспорт архива хранилища</string>
+    <string name="export_vault_sub">Зашифрованный файл .lumavault</string>
+    <string name="import_backup_sub">Восстановить из файла .lumavault</string>
+    <string name="notifications">Уведомления</string>
+    <string name="notifications_schedule">90 · 30 · 7 · 1 день</string>
+    <string name="app_version_note">LumaDocs v1.0 · сборка 2026.4.18\nСделано приватно. Всегда зашифровано.</string>
+    <string name="export_vault_confirm_title">Экспортировать архив хранилища?</string>
+    <string name="export_vault_confirm_message">Выберите документы, которые войдут в зашифрованную резервную копию.</string>
+    <string name="disconnect_drive_title">Отключить Google Drive?</string>
+    <string name="disconnect_drive_message">Вы выйдете из аккаунта; кэш файлов и блокировка приложения на этом устройстве будут очищены.</string>
+
 </resources>
 

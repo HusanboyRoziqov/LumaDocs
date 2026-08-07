@@ -73,6 +73,8 @@ import kotlinx.coroutines.withContext
 import lumadocs.composeapp.generated.resources.Res
 import lumadocs.composeapp.generated.resources.cancel
 import lumadocs.composeapp.generated.resources.done
+import lumadocs.composeapp.generated.resources.close
+import lumadocs.composeapp.generated.resources.crop
 import lumadocs.composeapp.generated.resources.send_count
 import org.jetbrains.compose.resources.stringResource
 import kotlin.math.roundToInt
@@ -150,11 +152,11 @@ internal fun MediaEditorScreen(
                     }
                 } else {
                     IconButton(onClick = onCancel) {
-                        Icon(Icons.Filled.Close, contentDescription = "Close", tint = Color.White)
+                        Icon(Icons.Filled.Close, contentDescription = stringResource(Res.string.close), tint = Color.White)
                     }
                     Spacer(Modifier.weight(1f))
                     IconButton(onClick = { cropMode = true }) {
-                        Icon(Icons.Filled.Crop, contentDescription = "Crop", tint = Color.White)
+                        Icon(Icons.Filled.Crop, contentDescription = stringResource(Res.string.crop), tint = Color.White)
                     }
                 }
             }

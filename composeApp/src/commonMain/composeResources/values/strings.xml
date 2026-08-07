@@ -230,6 +230,219 @@
     <string name="document_label">Document</string>
     <string name="field_name">Name</string>
 
+    <!-- ─────────── Candlelight UI ─────────── -->
+
+    <!-- Shared actions -->
+    <string name="action_continue">Continue</string>
+    <string name="action_clear">Clear</string>
+    <string name="action_remove_page">Remove page</string>
+    <string name="action_backspace">Backspace</string>
+
+    <!-- Categories -->
+    <string name="cat_identity">Identity</string>
+    <string name="cat_travel">Travel</string>
+    <string name="cat_medical">Medical</string>
+    <string name="cat_financial">Financial</string>
+    <string name="cat_education">Education</string>
+    <string name="cat_legal">Legal</string>
+    <string name="cat_other">Other</string>
+
+    <!-- File types -->
+    <string name="type_image">Image</string>
+    <string name="type_pdf">PDF</string>
+    <string name="type_document">Document</string>
+    <string name="type_spreadsheet">Spreadsheet</string>
+    <string name="type_presentation">Presentation</string>
+    <string name="type_file">File</string>
+
+    <!-- Short month names, in calendar order -->
+    <string-array name="months_short">
+        <item>Jan</item>
+        <item>Feb</item>
+        <item>Mar</item>
+        <item>Apr</item>
+        <item>May</item>
+        <item>Jun</item>
+        <item>Jul</item>
+        <item>Aug</item>
+        <item>Sep</item>
+        <item>Oct</item>
+        <item>Nov</item>
+        <item>Dec</item>
+    </string-array>
+
+    <!-- Counts -->
+    <plurals name="days_count">
+        <item quantity="one">%1$d day</item>
+        <item quantity="other">%1$d days</item>
+    </plurals>
+    <plurals name="pages_added">
+        <item quantity="one">%1$d page added</item>
+        <item quantity="other">%1$d pages added</item>
+    </plurals>
+    <plurals name="documents_to_upload">
+        <item quantity="one">%1$d document to upload</item>
+        <item quantity="other">%1$d documents to upload</item>
+    </plurals>
+    <plurals name="items_count">
+        <item quantity="one">%1$d item</item>
+        <item quantity="other">%1$d items</item>
+    </plurals>
+    <plurals name="matches_count">
+        <item quantity="one">%1$d match</item>
+        <item quantity="other">%1$d matches</item>
+    </plurals>
+    <string name="today_short">today</string>
+    <string name="unit_kb">%1$s KB</string>
+    <string name="unit_mb">%1$s MB</string>
+    <string name="days_short">%1$dd</string>
+    <string name="days_ago_short">%1$dd ago</string>
+    <string name="size_kb">%1$d KB</string>
+
+    <!-- Onboarding -->
+    <string name="onb_brand">LUMADOCS</string>
+    <string name="onb1_title">Your\ndigital safe.</string>
+    <string name="onb1_body">Scan, encrypt, and store your most important documents — passports, IDs, records — in one private vault.</string>
+    <string name="onb2_kicker">FEATURE · 01</string>
+    <string name="onb2_title">Scan any\ndocument.</string>
+    <string name="onb2_body">Auto edge detection and enhancement. Stack multi-page contracts, IDs, and reports into a single file.</string>
+    <string name="onb3_kicker">FEATURE · 02</string>
+    <string name="onb3_title">End-to-end\nencrypted.</string>
+    <string name="onb3_body">AES-256 locally. Face ID to unlock. Everything syncs to your Google Drive encrypted — only you hold the key.</string>
+    <string name="onb4_kicker">FEATURE · 03</string>
+    <string name="onb4_title">Never miss\na renewal.</string>
+    <string name="onb4_body">Set expiry dates on any document. Get alerts 90, 30, 7 and 1 day before a passport or visa expires.</string>
+    <string name="onb_skip">Skip →</string>
+    <string name="onb_expires_in">expires in %1$s</string>
+    <string name="sample_passport">U.S. Passport</string>
+    <string name="sample_lease">Apartment Lease</string>
+    <string name="sample_visa">Schengen Visa</string>
+    <string name="sample_boarding">Boarding Pass</string>
+
+    <!-- Sign-in -->
+    <string name="start_kicker">CHOOSE HOW TO UNLOCK</string>
+    <string name="start_title">Sign in, or go private.</string>
+    <string name="start_body">Sign in to sync encrypted backups across your devices. Guest mode keeps everything on this phone only.</string>
+    <string name="start_legal">By continuing you agree to our Terms and Privacy Policy. Your documents are encrypted before they ever leave your device.</string>
+
+    <!-- Bottom navigation -->
+    <string name="nav_search">Search</string>
+    <string name="nav_reminders">Reminders</string>
+
+    <!-- Vault -->
+    <string name="brand_luma_docs">LUMA DOCS</string>
+    <string name="greeting_morning">Good morning</string>
+    <string name="greeting_afternoon">Good afternoon</string>
+    <string name="greeting_evening">Good evening</string>
+    <string name="tap_to_upload">Tap to upload · %1$s</string>
+    <string name="expiring_soon">Expiring Soon</string>
+    <string name="see_all">See all →</string>
+    <string name="categories">Categories</string>
+    <string name="all_documents">All Documents</string>
+    <string name="vault_loading">Loading your vault…</string>
+    <string name="vault_empty">No documents yet. Tap Scan to add one.</string>
+    <string name="folder_items">Folder · %1$s</string>
+    <string name="vault_expires_suffix"> · exp %1$s</string>
+    <string name="pending_size">Pending · %1$s</string>
+    <string name="pending_upload_size">Pending upload · %1$s</string>
+    <string name="badge_pending">PENDING</string>
+    <string name="badge_synced">SYNCED</string>
+    <string name="badge_local">LOCAL</string>
+
+    <!-- Reminders -->
+    <string name="reminders_headline">What\'s expiring.</string>
+    <string name="rem_within_7">Within 7 days</string>
+    <string name="rem_within_30">Within 30 days</string>
+    <string name="rem_within_90">Within 90 days</string>
+    <string name="rem_later">Later</string>
+    <string name="rem_expired">Expired</string>
+    <string name="stat_expired">EXPIRED</string>
+    <string name="stat_due_30">DUE &lt; 30 DAYS</string>
+    <string name="stat_tracked">TRACKED</string>
+    <string name="reminders_empty">No documents have an expiry date yet.</string>
+
+    <!-- Search -->
+    <string name="search_placeholder">Search name, tag, or text inside…</string>
+    <string name="search_recent">Recent</string>
+    <string name="search_recent_empty">Your recent searches will show up here.</string>
+    <string name="search_smart_suggestions">Smart Suggestions</string>
+    <string name="search_no_matches">No documents match</string>
+    <string name="search_match_label">%1$s · match</string>
+    <string name="sug_expiring_month">Expiring this month</string>
+    <string name="sug_photos">Photos</string>
+    <string name="sug_encrypted">Encrypted</string>
+    <string name="sug_has_expiry">Has expiry set</string>
+
+    <!-- Scan / new document -->
+    <string name="scan_live">LIVE</string>
+    <string name="scan_image_ready">IMAGE READY</string>
+    <string name="scan_edge_detected">EDGE DETECTED</string>
+    <string name="scan_flash">Flash</string>
+    <string name="scan_auto">AUTO</string>
+    <string name="scan_manual">MANUAL</string>
+    <string name="scan_multipage_hint">Multi-page: shoot each page, then Done</string>
+    <string name="scan_pick_from_gallery">Pick from gallery</string>
+    <string name="scan_retake">Retake</string>
+    <string name="scan_new_document">New Document</string>
+    <string name="scan_pages_hint">Tap a page to review &amp; crop · + to add another</string>
+    <string name="scan_connect_drive_hint">Connect Google Drive in Settings to save. Tap to dismiss.</string>
+    <string name="scan_default_name">Scan</string>
+    <string name="document_name_hint">Document name</string>
+    <string name="expiry_optional">Expiry · optional</string>
+    <string name="save_to_vault">Save to Vault</string>
+    <string name="add_image">Add Image</string>
+    <string name="add_page_title">Add a page</string>
+    <string name="add_from_gallery">Choose from gallery</string>
+    <string name="add_from_gallery_sub">Pick photos already on this device</string>
+    <string name="add_from_camera">Take a photo</string>
+    <string name="add_from_camera_sub">Open the camera and capture a new page</string>
+    <string name="upload_dialog_title">Saving to your vault</string>
+    <string name="upload_page_progress">Page %1$d of %2$d</string>
+    <string name="upload_keep_open">Keep this screen open until it finishes.</string>
+    <string name="saved_offline">Saved offline — will upload when connected</string>
+
+    <!-- Document detail -->
+    <string name="meta_category">CATEGORY</string>
+    <string name="meta_type">TYPE</string>
+    <string name="meta_expires">EXPIRES</string>
+    <string name="meta_security">SECURITY</string>
+    <string name="meta_notes">NOTES</string>
+    <string name="encrypted_aes">Encrypted · AES-256</string>
+    <string name="not_encrypted">Not encrypted</string>
+    <string name="detail_expires_in"> · in %1$dd</string>
+    <string name="page_indicator">%1$d / %2$d</string>
+    <string name="notes_placeholder">Add a note — reminders, reference numbers, renewal steps…</string>
+    <string name="notes_edit_placeholder">Add reminders, reference numbers, renewal steps…</string>
+    <string name="notes_encrypted_note">Notes are encrypted at rest and synced to your Google Drive. Only you can read them.</string>
+    <string name="notes_label">Notes</string>
+    <string name="edit_document">Edit Document</string>
+    <string name="delete_document_title">Delete document?</string>
+    <string name="delete_document_message">This permanently removes it from your vault and Google Drive.</string>
+
+    <!-- Settings -->
+    <string name="settings_headline">Your vault.</string>
+    <string name="guest">Guest</string>
+    <string name="local_only">Local only · not signed in</string>
+    <string name="group_security">Security</string>
+    <string name="group_cloud_sync">Cloud &amp; Sync</string>
+    <string name="group_app">App</string>
+    <string name="app_lock_title">App Lock</string>
+    <string name="app_lock_sub">Unlock the vault with PIN / biometrics</string>
+    <string name="encryption">Encryption</string>
+    <string name="encryption_on">AES-256 · new photos encrypted</string>
+    <string name="encryption_off">New photos stored unencrypted</string>
+    <string name="drive_connected_sub">Encrypted · connected</string>
+    <string name="drive_not_connected_sub">Not connected</string>
+    <string name="export_vault">Export vault archive</string>
+    <string name="export_vault_sub">Encrypted .lumavault file</string>
+    <string name="import_backup_sub">Restore from a .lumavault file</string>
+    <string name="notifications">Notifications</string>
+    <string name="notifications_schedule">90 · 30 · 7 · 1 day</string>
+    <string name="app_version_note">LumaDocs v1.0 · Build 2026.4.18\nMade privately. Encrypted always.</string>
+    <string name="export_vault_confirm_title">Export vault archive?</string>
+    <string name="export_vault_confirm_message">Choose which documents to include in an encrypted backup file.</string>
+    <string name="disconnect_drive_title">Disconnect Google Drive?</string>
+    <string name="disconnect_drive_message">This signs you out and clears every cached file and the app lock on this device.</string>
 
 </resources>
 

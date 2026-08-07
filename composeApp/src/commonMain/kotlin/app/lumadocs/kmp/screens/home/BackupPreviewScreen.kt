@@ -54,6 +54,7 @@ import app.lumadocs.kmp.theme.nBlack400
 import app.lumadocs.kmp.theme.nBrand100
 import kotlinx.coroutines.launch
 import lumadocs.composeapp.generated.resources.Res
+import lumadocs.composeapp.generated.resources.close
 import lumadocs.composeapp.generated.resources.deselect_all
 import lumadocs.composeapp.generated.resources.files_selected
 import lumadocs.composeapp.generated.resources.opening_file
@@ -131,7 +132,7 @@ internal fun BackupPreviewScreen(
                     Box(contentAlignment = Alignment.Center) {
                         Icon(
                             imageVector = Icons.Filled.Close,
-                            contentDescription = "Close",
+                            contentDescription = stringResource(Res.string.close),
                             tint = nBlack300,
                             modifier = Modifier.size(18.dp)
                         )

@@ -13,6 +13,10 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import app.lumadocs.kmp.theme.LocalLumaColors
+import lumadocs.composeapp.generated.resources.Res
+import lumadocs.composeapp.generated.resources.cancel
+import lumadocs.composeapp.generated.resources.ok
+import org.jetbrains.compose.resources.stringResource
 import kotlinx.datetime.Instant
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.TimeZone
@@ -53,8 +57,8 @@ fun ExpiryDatePickerDialog(
     )
     DatePickerDialog(
         onDismissRequest = onDismiss,
-        confirmButton = { TextButton(onClick = { state.selectedDateMillis?.let { onPicked(utcMillisToIso(it)) } }) { Text("OK", color = c.accent, fontWeight = FontWeight.SemiBold) } },
-        dismissButton = { TextButton(onClick = onDismiss) { Text("Cancel", color = c.textDim) } },
+        confirmButton = { TextButton(onClick = { state.selectedDateMillis?.let { onPicked(utcMillisToIso(it)) } }) { Text(stringResource(Res.string.ok), color = c.accent, fontWeight = FontWeight.SemiBold) } },
+        dismissButton = { TextButton(onClick = onDismiss) { Text(stringResource(Res.string.cancel), color = c.textDim) } },
         colors = colors,
     ) { DatePicker(state = state, colors = colors, title = null) }
 }

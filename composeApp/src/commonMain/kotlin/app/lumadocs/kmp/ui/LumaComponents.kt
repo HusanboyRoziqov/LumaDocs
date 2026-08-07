@@ -42,6 +42,11 @@ import app.lumadocs.kmp.theme.LumaUi
 import app.lumadocs.kmp.icons.LumaIcons
 import app.lumadocs.kmp.theme.LocalLumaColors
 import app.lumadocs.kmp.utils.PreviewCache
+import lumadocs.composeapp.generated.resources.Res
+import lumadocs.composeapp.generated.resources.all
+import lumadocs.composeapp.generated.resources.items_count
+import org.jetbrains.compose.resources.pluralStringResource
+import org.jetbrains.compose.resources.stringResource
 import coil3.compose.AsyncImage
 import coil3.compose.LocalPlatformContext
 import coil3.request.ImageRequest
@@ -279,7 +284,7 @@ fun DocFolderThumb(
             )
             if (size != ThumbSize.SM) {
                 Spacer(Modifier.height(8.dp))
-                Text("$count item${if (count == 1) "" else "s"}", fontFamily = LumaMono, fontSize = 10.sp, color = c.textMute, letterSpacing = 0.3.sp)
+                Text(pluralStringResource(Res.plurals.items_count, count, count), fontFamily = LumaMono, fontSize = 10.sp, color = c.textMute, letterSpacing = 0.3.sp)
             }
         }
         if (size == ThumbSize.SM && count > 0) {
@@ -320,7 +325,7 @@ fun CategoryChip(
     ) {
         Box(Modifier.size(8.dp).clip(RoundedCornerShape(2.dp)).background(category.hue))
         Text(
-            category.label,
+            category.localizedLabel(),
             fontFamily = LumaUi, fontSize = 13.sp, fontWeight = FontWeight.Medium,
             color = if (active) c.text else c.textDim,
         )
@@ -345,7 +350,7 @@ fun AllChip(active: Boolean, count: Int, onClick: () -> Unit, modifier: Modifier
         horizontalArrangement = Arrangement.spacedBy(6.dp),
     ) {
         Text(
-            "All", fontFamily = LumaUi, fontSize = 13.sp, fontWeight = FontWeight.Medium,
+            stringResource(Res.string.all), fontFamily = LumaUi, fontSize = 13.sp, fontWeight = FontWeight.Medium,
             color = if (active) Color(0xFF1A1408) else c.textDim,
         )
         Text(

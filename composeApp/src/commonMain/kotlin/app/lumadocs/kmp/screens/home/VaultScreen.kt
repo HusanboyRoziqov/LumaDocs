@@ -72,8 +72,32 @@ import app.lumadocs.kmp.ui.ThumbSize
 import app.lumadocs.kmp.ui.categoryOf
 import app.lumadocs.kmp.ui.expiryDaysOf
 import app.lumadocs.kmp.ui.formatExpiry
-import app.lumadocs.kmp.ui.formatSize
+import app.lumadocs.kmp.ui.formatSizeLocalized
+import app.lumadocs.kmp.ui.formatExpiryLocalized
+import app.lumadocs.kmp.ui.localizedLabel
 import app.lumadocs.kmp.ui.sizedThumb
+import lumadocs.composeapp.generated.resources.Res
+import lumadocs.composeapp.generated.resources.all_documents
+import lumadocs.composeapp.generated.resources.badge_pending
+import lumadocs.composeapp.generated.resources.brand_luma_docs
+import lumadocs.composeapp.generated.resources.categories
+import lumadocs.composeapp.generated.resources.days_short
+import lumadocs.composeapp.generated.resources.documents_to_upload
+import lumadocs.composeapp.generated.resources.expiring_soon
+import lumadocs.composeapp.generated.resources.folder_items
+import lumadocs.composeapp.generated.resources.greeting_afternoon
+import lumadocs.composeapp.generated.resources.greeting_evening
+import lumadocs.composeapp.generated.resources.greeting_morning
+import lumadocs.composeapp.generated.resources.items_count
+import lumadocs.composeapp.generated.resources.pending_size
+import lumadocs.composeapp.generated.resources.pending_upload_size
+import lumadocs.composeapp.generated.resources.see_all
+import lumadocs.composeapp.generated.resources.tap_to_upload
+import lumadocs.composeapp.generated.resources.vault_empty
+import lumadocs.composeapp.generated.resources.vault_expires_suffix
+import lumadocs.composeapp.generated.resources.vault_loading
+import org.jetbrains.compose.resources.pluralStringResource
+import org.jetbrains.compose.resources.stringResource
 import app.lumadocs.kmp.data.PendingUpload
 import app.lumadocs.kmp.utils.decodeImageBitmap
 import app.lumadocs.kmp.viewmodels.DocumentsViewModel
@@ -185,7 +209,7 @@ internal fun VaultScreen(
                     horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically,
                 ) {
                     Column {
-                        Text("LUMA DOCS", fontFamily = LumaMono, fontSize = 10.5.sp, fontWeight = FontWeight.Medium, color = c.textMute, letterSpacing = 1.6.sp)
+                        Text(stringResource(Res.string.brand_luma_docs), fontFamily = LumaMono, fontSize = 10.5.sp, fontWeight = FontWeight.Medium, color = c.textMute, letterSpacing = 1.6.sp)
                         Spacer(Modifier.height(4.dp))
                         Text(if (name != null) "$greeting," else "$greeting.", fontFamily = LumaDisplay, fontSize = 34.sp, lineHeight = 34.sp, letterSpacing = (-1).sp, color = c.text)
                         if (name != null) {
@@ -214,8 +238,8 @@ internal fun VaultScreen(
                             Icon(LumaIcons.Upload, null, tint = c.warn, modifier = Modifier.size(18.dp))
                         }
                         Column(Modifier.weight(1f)) {
-                            Text("${pending.size} document${if (pending.size == 1) "" else "s"} to upload", fontFamily = LumaUi, fontSize = 13.sp, fontWeight = FontWeight.Medium, color = c.text)
-                            Text("Tap to upload · ${formatSize(pendingBytes)}", fontFamily = LumaMono, fontSize = 11.sp, color = c.textMute, letterSpacing = 0.3.sp, modifier = Modifier.padding(top = 2.dp))
+                            Text(pluralStringResource(Res.plurals.documents_to_upload, pending.size, pending.size), fontFamily = LumaUi, fontSize = 13.sp, fontWeight = FontWeight.Medium, color = c.text)
+                            Text(stringResource(Res.string.tap_to_upload, formatSizeLocalized(pendingBytes)), fontFamily = LumaMono, fontSize = 11.sp, color = c.textMute, letterSpacing = 0.3.sp, modifier = Modifier.padding(top = 2.dp))
                         }
                         if (isUploadingPending) CircularProgressIndicator(color = c.warn, strokeWidth = 2.dp, modifier = Modifier.size(18.dp))
                         else Icon(LumaIcons.Forward, null, tint = c.warn, modifier = Modifier.size(16.dp))
@@ -227,8 +251,8 @@ internal fun VaultScreen(
             if (expiring.isNotEmpty()) {
                 item(span = { GridItemSpan(maxLineSpan) }) {
                     Column {
-                        SectionLabel("Expiring Soon", right = {
-                            Text("See all →", color = c.accent, fontFamily = LumaUi, fontSize = 12.sp, fontWeight = FontWeight.Medium, modifier = Modifier.clickable(onClick = onOpenReminders))
+                        SectionLabel(stringResource(Res.string.expiring_soon), right = {
+                            Text(stringResource(Res.string.see_all), color = c.accent, fontFamily = LumaUi, fontSize = 12.sp, fontWeight = FontWeight.Medium, modifier = Modifier.clickable(onClick = onOpenReminders))
                         })
                         Spacer(Modifier.height(12.dp))
                         LazyRow(contentPadding = PaddingValues(horizontal = 20.dp), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
@@ -243,7 +267,7 @@ internal fun VaultScreen(
                                     DocFileThumb(file = f, size = ThumbSize.SM)
                                     Column(Modifier.weight(1f)) {
                                         Text(f.name, fontFamily = LumaUi, fontSize = 13.sp, fontWeight = FontWeight.Medium, color = c.text, maxLines = 1, overflow = TextOverflow.Ellipsis)
-                                        Text("${days}d · ${formatExpiry(f.expiryDate)}", fontFamily = LumaMono, fontSize = 10.5.sp, color = if (days <= 7) c.err else c.warn, letterSpacing = 0.3.sp, modifier = Modifier.padding(top = 3.dp))
+                                        Text(stringResource(Res.string.days_short, days) + " · " + formatExpiryLocalized(f.expiryDate), fontFamily = LumaMono, fontSize = 10.5.sp, color = if (days <= 7) c.err else c.warn, letterSpacing = 0.3.sp, modifier = Modifier.padding(top = 3.dp))
                                     }
                                 }
                             }
@@ -256,7 +280,7 @@ internal fun VaultScreen(
             // Category chips
             item(span = { GridItemSpan(maxLineSpan) }) {
                 Column {
-                    SectionLabel("Categories")
+                    SectionLabel(stringResource(Res.string.categories))
                     Spacer(Modifier.height(12.dp))
                     LazyRow(contentPadding = PaddingValues(horizontal = 20.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                         item { AllChip(active = filter == null, count = files.size, onClick = { filter = null }) }
@@ -275,7 +299,7 @@ internal fun VaultScreen(
                     horizontalArrangement = Arrangement.SpaceBetween,
                 ) {
                     Text(
-                        "${(filter?.label ?: "All Documents").uppercase()} · ${filtered.size}",
+                        "${(filter?.localizedLabel() ?: stringResource(Res.string.all_documents)).uppercase()} · ${filtered.size}",
                         fontFamily = LumaMono, fontSize = 10.5.sp, fontWeight = FontWeight.Medium, color = c.textMute, letterSpacing = 1.4.sp,
                     )
                     Row(Modifier.clip(RoundedCornerShape(8.dp)).background(Color(0x0AFFFFFF)).padding(3.dp), horizontalArrangement = Arrangement.spacedBy(2.dp)) {
@@ -295,9 +319,9 @@ internal fun VaultScreen(
 
             // Documents
             if (state.isLoading && files.isEmpty() && pending.isEmpty()) {
-                item(span = { GridItemSpan(maxLineSpan) }) { CenteredHint("Loading your vault…") }
+                item(span = { GridItemSpan(maxLineSpan) }) { CenteredHint(stringResource(Res.string.vault_loading)) }
             } else if (filtered.isEmpty() && pending.isEmpty()) {
-                item(span = { GridItemSpan(maxLineSpan) }) { CenteredHint("No documents yet. Tap Scan to add one.") }
+                item(span = { GridItemSpan(maxLineSpan) }) { CenteredHint(stringResource(Res.string.vault_empty)) }
             } else if (filtered.isNotEmpty()) {
                 items(
                     items = visible,
@@ -315,7 +339,8 @@ internal fun VaultScreen(
                             else DocFileThumb(file = f, size = ThumbSize.MD, fillWidth = true)
                             Text(displayName, fontFamily = LumaUi, fontSize = 13.sp, fontWeight = FontWeight.Medium, color = c.text, maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.padding(top = 10.dp))
                             Text(
-                                if (folderId != null) "Folder · ${folderCount ?: 0} items" else "${categoryOf(f).label} · ${formatSize(f.size)}",
+                                if (folderId != null) stringResource(Res.string.folder_items, pluralStringResource(Res.plurals.items_count, folderCount ?: 0, folderCount ?: 0))
+                                else "${categoryOf(f).localizedLabel()} · ${formatSizeLocalized(f.size)}",
                                 fontFamily = LumaMono, fontSize = 10.5.sp, color = c.textMute, letterSpacing = 0.2.sp, modifier = Modifier.padding(top = 2.dp),
                             )
                         }
@@ -331,9 +356,12 @@ internal fun VaultScreen(
                             Column(Modifier.weight(1f)) {
                                 Text(displayName, fontFamily = LumaUi, fontSize = 14.sp, fontWeight = FontWeight.Medium, color = c.text, maxLines = 1, overflow = TextOverflow.Ellipsis)
                                 Text(
-                                    if (folderId != null) "Folder · ${folderCount ?: 0} items" else buildString {
-                                        append(categoryOf(f).label); append(" · "); append(formatSize(f.size))
-                                        f.expiryDate?.let { append(" · exp ${formatExpiry(it)}") }
+                                    if (folderId != null) {
+                                        stringResource(Res.string.folder_items, pluralStringResource(Res.plurals.items_count, folderCount ?: 0, folderCount ?: 0))
+                                    } else {
+                                        val categoryLabel = categoryOf(f).localizedLabel()
+                                        val expiryText = f.expiryDate?.let { stringResource(Res.string.vault_expires_suffix, formatExpiryLocalized(it)) }.orEmpty()
+                                        "$categoryLabel · ${formatSizeLocalized(f.size)}$expiryText"
                                     },
                                     fontFamily = LumaMono, fontSize = 11.sp, color = c.textMute, letterSpacing = 0.3.sp, maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.padding(top = 3.dp),
                                 )
@@ -382,7 +410,7 @@ private fun PendingCard(vm: DocumentsViewModel, item: PendingUpload, gridView: B
                 PendingBadge(Modifier.align(Alignment.TopStart).padding(8.dp))
             }
             Text(item.name, fontFamily = LumaUi, fontSize = 13.sp, fontWeight = FontWeight.Medium, color = c.text, maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.padding(top = 10.dp))
-            Text("Pending · ${formatSize(item.sizeBytes)}", fontFamily = LumaMono, fontSize = 10.5.sp, color = c.warn, letterSpacing = 0.2.sp, modifier = Modifier.padding(top = 2.dp))
+            Text(stringResource(Res.string.pending_size, formatSizeLocalized(item.sizeBytes)), fontFamily = LumaMono, fontSize = 10.5.sp, color = c.warn, letterSpacing = 0.2.sp, modifier = Modifier.padding(top = 2.dp))
         }
     } else {
         Row(
@@ -396,7 +424,7 @@ private fun PendingCard(vm: DocumentsViewModel, item: PendingUpload, gridView: B
             }
             Column(Modifier.weight(1f)) {
                 Text(item.name, fontFamily = LumaUi, fontSize = 14.sp, fontWeight = FontWeight.Medium, color = c.text, maxLines = 1, overflow = TextOverflow.Ellipsis)
-                Text("Pending upload · ${formatSize(item.sizeBytes)}", fontFamily = LumaMono, fontSize = 11.sp, color = c.warn, letterSpacing = 0.3.sp, modifier = Modifier.padding(top = 3.dp))
+                Text(stringResource(Res.string.pending_upload_size, formatSizeLocalized(item.sizeBytes)), fontFamily = LumaMono, fontSize = 11.sp, color = c.warn, letterSpacing = 0.3.sp, modifier = Modifier.padding(top = 3.dp))
             }
         }
     }
@@ -406,7 +434,7 @@ private fun PendingCard(vm: DocumentsViewModel, item: PendingUpload, gridView: B
 private fun PendingBadge(modifier: Modifier = Modifier) {
     val c = LocalLumaColors.current
     Box(modifier.clip(RoundedCornerShape(999.dp)).background(Color(0xE6000000)).padding(horizontal = 8.dp, vertical = 3.dp)) {
-        Text("PENDING", fontFamily = LumaMono, fontSize = 8.sp, fontWeight = FontWeight.SemiBold, color = c.warn, letterSpacing = 0.6.sp)
+        Text(stringResource(Res.string.badge_pending), fontFamily = LumaMono, fontSize = 8.sp, fontWeight = FontWeight.SemiBold, color = c.warn, letterSpacing = 0.6.sp)
     }
 }
 
@@ -419,11 +447,14 @@ private fun CenteredHint(text: String) {
 }
 
 @OptIn(kotlin.time.ExperimentalTime::class)
+@Composable
 private fun greetingForNow(): String {
     val hour = kotlin.time.Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault()).hour
-    return when (hour) {
-        in 5..11 -> "Good morning"
-        in 12..17 -> "Good afternoon"
-        else -> "Good evening"
-    }
+    return stringResource(
+        when (hour) {
+            in 5..11 -> Res.string.greeting_morning
+            in 12..17 -> Res.string.greeting_afternoon
+            else -> Res.string.greeting_evening
+        }
+    )
 }

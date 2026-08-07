@@ -17,6 +17,7 @@ import lumadocs.composeapp.generated.resources.error_drive_access
 import lumadocs.composeapp.generated.resources.error_folder_create_failed
 import lumadocs.composeapp.generated.resources.error_no_files_selected
 import lumadocs.composeapp.generated.resources.error_upload_failed
+import lumadocs.composeapp.generated.resources.saved_offline
 import lumadocs.composeapp.generated.resources.upload_success
 import lumadocs.composeapp.generated.resources.upload_success_encrypted
 import org.jetbrains.compose.resources.getString
@@ -204,7 +205,7 @@ class AddScreenViewModel : ViewModel(), KoinComponent {
                 }
                 _uiState.value = _uiState.value.copy(
                     isLoading = false,
-                    successMessage = "Saved offline — will upload when connected",
+                    successMessage = getString(Res.string.saved_offline),
                     uploadProgress = 100,
                 )
                 return@launch

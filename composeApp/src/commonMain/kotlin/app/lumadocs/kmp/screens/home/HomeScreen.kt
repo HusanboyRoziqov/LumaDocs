@@ -39,6 +39,12 @@ import app.lumadocs.kmp.CurrentUserState
 import app.lumadocs.kmp.VaultEvents
 import app.lumadocs.kmp.data.FirebaseUser
 import app.lumadocs.kmp.icons.LumaIcons
+import lumadocs.composeapp.generated.resources.Res
+import lumadocs.composeapp.generated.resources.home
+import lumadocs.composeapp.generated.resources.nav_reminders
+import lumadocs.composeapp.generated.resources.nav_search
+import lumadocs.composeapp.generated.resources.settings
+import org.jetbrains.compose.resources.stringResource
 import app.lumadocs.kmp.navigation.AppBackHandler
 import app.lumadocs.kmp.theme.LocalLumaColors
 import app.lumadocs.kmp.theme.LumaUi
@@ -117,12 +123,12 @@ private fun LumaTabBar(
             .padding(start = 12.dp, end = 12.dp, bottom = 20.dp, top = 4.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        TabItem(LumaIcons.Vault, "Home", active == HomeTab.VAULT, Modifier.weight(1f)) {
+        TabItem(LumaIcons.Vault, stringResource(Res.string.home), active == HomeTab.VAULT, Modifier.weight(1f)) {
             onSelect(
                 HomeTab.VAULT
             )
         }
-        TabItem(LumaIcons.Search, "Search", active == HomeTab.SEARCH, Modifier.weight(1f)) { onSelect(HomeTab.SEARCH) }
+        TabItem(LumaIcons.Search, stringResource(Res.string.nav_search), active == HomeTab.SEARCH, Modifier.weight(1f)) { onSelect(HomeTab.SEARCH) }
         // Center scan FAB
         Box(Modifier.weight(1f), contentAlignment = Alignment.Center) {
             Box(
@@ -135,8 +141,8 @@ private fun LumaTabBar(
                 contentAlignment = Alignment.Center,
             ) { Icon(LumaIcons.Scan, null, tint = Color(0xFF1A1408), modifier = Modifier.size(26.dp)) }
         }
-        TabItem(LumaIcons.Bell, "Reminders", active == HomeTab.REMINDERS, Modifier.weight(1f)) { onSelect(HomeTab.REMINDERS) }
-        TabItem(LumaIcons.Settings, "Settings", active == HomeTab.SETTINGS, Modifier.weight(1f)) { onSelect(HomeTab.SETTINGS) }
+        TabItem(LumaIcons.Bell, stringResource(Res.string.nav_reminders), active == HomeTab.REMINDERS, Modifier.weight(1f)) { onSelect(HomeTab.REMINDERS) }
+        TabItem(LumaIcons.Settings, stringResource(Res.string.settings), active == HomeTab.SETTINGS, Modifier.weight(1f)) { onSelect(HomeTab.SETTINGS) }
     }
 }
 

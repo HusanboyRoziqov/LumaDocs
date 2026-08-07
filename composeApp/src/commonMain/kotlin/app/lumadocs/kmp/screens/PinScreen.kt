@@ -56,6 +56,7 @@ import app.lumadocs.kmp.theme.nWhite100
 import app.lumadocs.kmp.theme.nWhite600
 import kotlinx.coroutines.launch
 import lumadocs.composeapp.generated.resources.Res
+import lumadocs.composeapp.generated.resources.action_backspace
 import lumadocs.composeapp.generated.resources.pin_confirm_subtitle
 import lumadocs.composeapp.generated.resources.pin_confirm_title
 import lumadocs.composeapp.generated.resources.pin_create_subtitle
@@ -253,7 +254,7 @@ fun PinScreen(
                 KeypadButton(onClick = onBackspace) {
                     Icon(
                         imageVector = Icons.AutoMirrored.Filled.Backspace,
-                        contentDescription = "Backspace",
+                        contentDescription = stringResource(Res.string.action_backspace),
                         tint = nWhite100,
                         modifier = Modifier.size(26.dp),
                     )
