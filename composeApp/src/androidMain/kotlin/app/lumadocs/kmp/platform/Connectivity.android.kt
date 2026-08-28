@@ -11,6 +11,9 @@ actual fun isOnline(): Boolean {
         ?: return false
     val network = cm.activeNetwork ?: return false
     val caps = cm.getNetworkCapabilities(network) ?: return false
-    return caps.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET) &&
-        caps.hasCapability(NetworkCapabilities.NET_CAPABILITY_VALIDATED)
+    // Only INTERNET is required. NET_CAPABILITY_VALIDATED reports false in ordinary situations —
+    // right after a network switch, on VPNs, and on ROMs whose captive-portal probe is blocked —
+    // which made the app refuse to sync and claim "no internet" while the connection worked. A
+    // false negative blocks real work; a false positive just surfaces the request's own error.
+    return caps.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)
 }

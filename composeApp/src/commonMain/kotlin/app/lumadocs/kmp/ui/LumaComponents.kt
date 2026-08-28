@@ -180,6 +180,7 @@ fun DocFileThumb(
     val category = remember(file.category, file.name) { categoryOf(file) }
     val expiring = remember(file.expiryDate) { (expiryDaysOf(file) ?: Int.MAX_VALUE) in 0..30 }
     val isImage = file.mimeType.startsWith("image/")
+    val isPdf = file.mimeType.contains("pdf", ignoreCase = true)
     val paper = remember { Brush.linearGradient(listOf(Color(0xFFF5F1E8), Color(0xFFE8E2D4))) }
 
     // The locally cached original, resolved off the main thread. Preferred over Drive's thumbnail:
@@ -189,7 +190,9 @@ fun DocFileThumb(
     val cachedPath by produceState<String?>(null, file.id, isImage) {
         value = if (isImage) withContext(Dispatchers.Default) { PreviewCache.localPath(file.id) } else null
     }
-    val hasThumb = isImage && (cachedPath != null || !file.thumbnailLink.isNullOrBlank())
+    // Drive renders a first-page preview for PDFs and office files too, so anything with a
+    // thumbnail link gets a real picture in the list — not just photos.
+    val hasThumb = cachedPath != null || !file.thumbnailLink.isNullOrBlank()
 
     val outer = if (fillWidth) modifier.fillMaxWidth().aspectRatio(size.w.value / size.h.value)
     else modifier.size(width = size.w, height = size.h)
@@ -219,8 +222,36 @@ fun DocFileThumb(
                     modifier = Modifier.matchParentSize(),
                     contentScale = ContentScale.Crop,
                 )
+            } else if (!isImage) {
+                // A document with no preview yet (offline, or Drive hasn't rendered one): show what
+                // kind of file it is instead of blank paper, at every thumbnail size.
+                Column(
+                    Modifier.matchParentSize().padding(top = size.bandH),
+                    verticalArrangement = Arrangement.Center,
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                ) {
+                    Icon(
+                        if (isPdf) LumaIcons.Pdf else LumaIcons.Page,
+                        null,
+                        tint = Color(0xFF8A7F6B),
+                        modifier = Modifier.size(if (size == ThumbSize.LG) 44.dp else if (size == ThumbSize.SM) 20.dp else 34.dp),
+                    )
+                    if (size != ThumbSize.SM) {
+                        Spacer(Modifier.height(6.dp))
+                        Text(
+                            localizedMimeLabel(file.mimeType).uppercase(),
+                            fontFamily = LumaMono,
+                            fontSize = if (size == ThumbSize.LG) 9.sp else 8.sp,
+                            fontWeight = FontWeight.SemiBold,
+                            color = Color(0xFF8A7F6B),
+                            letterSpacing = 0.8.sp,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis,
+                        )
+                    }
+                }
             } else if (size != ThumbSize.SM) {
-                // Paper "content lines" fallback.
+                // Paper "content lines" fallback for a photo whose thumbnail hasn't arrived.
                 Column(
                     Modifier.matchParentSize().padding(start = 10.dp, end = 10.dp, top = size.bandH + 12.dp),
                     verticalArrangement = Arrangement.spacedBy(4.dp),
@@ -239,7 +270,7 @@ fun DocFileThumb(
             ) {
                 if (size != ThumbSize.SM) {
                     Text(
-                        category.label.uppercase(),
+                        category.localizedLabel().uppercase(),
                         fontFamily = LumaMono,
                         fontSize = if (size == ThumbSize.LG) 9.sp else 7.5.sp,
                         fontWeight = FontWeight.SemiBold,

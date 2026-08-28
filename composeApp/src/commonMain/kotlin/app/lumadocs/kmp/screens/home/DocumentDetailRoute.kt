@@ -20,6 +20,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import lumadocs.composeapp.generated.resources.Res
 import lumadocs.composeapp.generated.resources.changes_saved
+import lumadocs.composeapp.generated.resources.error_preview_failed
 import lumadocs.composeapp.generated.resources.error_save_failed
 import lumadocs.composeapp.generated.resources.file_deleted
 import lumadocs.composeapp.generated.resources.no_internet
@@ -41,6 +42,7 @@ fun DocumentDetailRoute(
     val noInternetMsg = stringResource(Res.string.no_internet)
     val savedMsg = stringResource(Res.string.changes_saved)
     val saveFailedMsg = stringResource(Res.string.error_save_failed)
+    val openFailedMsg = stringResource(Res.string.error_preview_failed)
 
     LaunchedEffect(file.id) {
         viewModel.setFile(file)
@@ -92,7 +94,10 @@ fun DocumentDetailRoute(
                         target.mimeType
                     )
                 } else {
-                    showToast(noInternetMsg)
+                    // Blaming the connection for every failed open was wrong: a download can also
+                    // fail because the file is too large to buffer or Drive returned an error, and
+                    // the toast then lied to a user who was online (and outlived this screen).
+                    showToast(if (isOnline()) openFailedMsg else noInternetMsg)
                 }
             }
         },

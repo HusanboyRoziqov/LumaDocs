@@ -37,6 +37,8 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
+private const val FOLDER_MIME = "application/vnd.google-apps.folder"
+
 class SettingsViewModel(
     private val authenticator: Authenticator,
     private val driveRepository: GoogleDriveRepository,
@@ -206,7 +208,16 @@ class SettingsViewModel(
                     }
                     return@launch
                 }
-                val files = driveRepository.listFiles(folderId = folderId, query = "")
+                // Direct children plus the contents of every per-document sub-folder. Listing only
+                // the top level put folders in the export list, and downloading a folder's "content"
+                // fails — which is why exporting a vault of multi-page scans did nothing.
+                val topLevel = driveRepository.listFiles(folderId = folderId, query = "")
+                val subFolders = topLevel.filter { it.mimeType == FOLDER_MIME }
+                val files = topLevel.filterNot { it.mimeType == FOLDER_MIME } +
+                    subFolders.flatMap { folder ->
+                        driveRepository.listFiles(folderId = folder.id, query = "")
+                            .filterNot { it.mimeType == FOLDER_MIME }
+                    }
                 if (files.isEmpty()) {
                     _uiState.update {
                         it.copy(
@@ -407,7 +418,11 @@ class SettingsViewModel(
         }.getOrNull()
     }
 
+    /** Dismisses a failed backup/restore so the Settings screen returns to its normal state. */
+    fun dismissBackupError() = cancelBackupFlow()
+
     /** Abort an in-progress export/import preview and return to idle. */
+
     fun cancelBackupFlow() {
         pendingImport = emptyList()
         _uiState.update {

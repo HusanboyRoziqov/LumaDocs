@@ -80,7 +80,7 @@ class DocumentDetailViewModel : ViewModel(), KoinComponent {
                 val bytes = googleDriveRepository.getFileContent(fileId, isEncrypted = isEncrypted)
                 if (bytes != null) PreviewCache.put(dataStore, fileId, bytes)
                 _previewBytes.value = bytes
-            } catch (e: Exception) {
+            } catch (e: Throwable) {
                 e.printStackTrace()
                 _errorMessage.value = ErrorMessages.forOperation(Res.string.error_preview_failed)
             } finally {
@@ -158,7 +158,11 @@ class DocumentDetailViewModel : ViewModel(), KoinComponent {
      * burst of parallel downloads.
      */
     fun ensureCached(pages: List<DriveFile>) {
-        val wanted = pages.filter { it.id !in _localPaths.value && inFlight.add(it.id) }
+        val wanted = pages
+            // A whole file is read into memory to cache it, so anything above the cache ceiling is
+            // left to its Drive thumbnail rather than risking an OutOfMemoryError for a preview.
+            .filter { (it.size ?: Long.MAX_VALUE) <= PreviewCache.MAX_BYTES }
+            .filter { it.id !in _localPaths.value && inFlight.add(it.id) }
         if (wanted.isEmpty()) return
         viewModelScope.launch {
             for (page in wanted) {
@@ -170,7 +174,9 @@ class DocumentDetailViewModel : ViewModel(), KoinComponent {
                         withContext(Dispatchers.Default) { PreviewCache.localPath(page.id) }
                     }
                     if (path != null) _localPaths.update { it + (page.id to path) }
-                } catch (e: Exception) {
+                } catch (e: Throwable) {
+                    // Includes OutOfMemoryError: a preview that doesn't fit must degrade to the
+                    // thumbnail, never take the app down.
                     e.printStackTrace()
                 } finally {
                     inFlight.remove(page.id)
@@ -186,7 +192,8 @@ class DocumentDetailViewModel : ViewModel(), KoinComponent {
             val bytes = googleDriveRepository.getFileContent(target.id, isEncrypted = target.encrypted)
             if (bytes != null) PreviewCache.put(dataStore, target.id, bytes)
             bytes
-        } catch (e: Exception) {
+        } catch (e: Throwable) {
+            // A file too large to buffer reports as "couldn't open" instead of crashing.
             e.printStackTrace()
             null
         }

@@ -71,6 +71,9 @@ import lumadocs.composeapp.generated.resources.disconnect_drive_title
 import lumadocs.composeapp.generated.resources.drive_connected_sub
 import lumadocs.composeapp.generated.resources.drive_not_connected_sub
 import lumadocs.composeapp.generated.resources.encryption
+import lumadocs.composeapp.generated.resources.error
+import lumadocs.composeapp.generated.resources.error_generic
+import lumadocs.composeapp.generated.resources.ok
 import lumadocs.composeapp.generated.resources.encryption_off
 import lumadocs.composeapp.generated.resources.encryption_on
 import lumadocs.composeapp.generated.resources.export_count
@@ -240,6 +243,28 @@ internal fun SettingsScreen(
         else -> null
     }
     if (loadingMessage != null) BackupLoadingDialog(message = loadingMessage)
+
+    // A failed export/import used to end in silence: the loading dialog vanished and the screen sat
+    // in ERROR with the reason never shown. Surface it.
+    if (settingsState.backupPhase == BackupPhase.ERROR) {
+        val c2 = LocalLumaColors.current
+        AlertDialog(
+            onDismissRequest = { settingsViewModel.dismissBackupError() },
+            containerColor = c2.bg2, titleContentColor = c2.text, textContentColor = c2.textDim,
+            title = { Text(stringResource(Res.string.error), fontFamily = LumaUi, fontWeight = FontWeight.SemiBold) },
+            text = {
+                Text(
+                    settingsState.backupError ?: stringResource(Res.string.error_generic),
+                    fontFamily = LumaUi,
+                )
+            },
+            confirmButton = {
+                TextButton(onClick = { settingsViewModel.dismissBackupError() }) {
+                    Text(stringResource(Res.string.ok), color = c2.accent, fontWeight = FontWeight.SemiBold)
+                }
+            },
+        )
+    }
 
     if (settingsState.backupPhase == BackupPhase.EXPORT_PREVIEW) {
         Dialog(onDismissRequest = { settingsViewModel.cancelBackupFlow() }, properties = DialogProperties(usePlatformDefaultWidth = false)) {

@@ -23,10 +23,19 @@ import kotlinx.coroutines.withContext
  */
 object PreviewCache {
     private const val MAX_ENTRIES = 60
-    private const val MEMORY_ENTRIES = 4
 
-    /** Files bigger than this are streamed on demand instead of being kept on disk. */
-    const val MAX_BYTES = 15 * 1024 * 1024
+    /**
+     * Kept deliberately small: each entry is a whole decoded-file byte array, and the app also
+     * hands Coil a large bitmap cache. Four 15 MB previews resident at once was enough to push the
+     * heap over the limit while a fifth was downloading.
+     */
+    private const val MEMORY_ENTRIES = 2
+
+    /**
+     * Files bigger than this are never buffered whole — not on disk and not in memory. The preview
+     * falls back to Drive's thumbnail, which is what the UI shows while a preview loads anyway.
+     */
+    const val MAX_BYTES = 8 * 1024 * 1024
 
     private val memory = LinkedHashMap<String, ByteArray>()
     private val orderKey = stringPreferencesKey("preview_order_v2")
@@ -47,8 +56,9 @@ object PreviewCache {
     }
 
     suspend fun put(dataStore: DataStore<Preferences>, fileId: String, bytes: ByteArray) {
-        putMemory(fileId, bytes)
+        // Size check first: an oversized array must not be parked in the memory cache either.
         if (bytes.size > MAX_BYTES) return
+        putMemory(fileId, bytes)
         withContext(Dispatchers.Default) { writeBlob(blobName(fileId), bytes) }
         runCatching {
             dataStore.edit { prefs ->

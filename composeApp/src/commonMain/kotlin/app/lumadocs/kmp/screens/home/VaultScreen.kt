@@ -29,6 +29,9 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.material3.Icon
+import androidx.compose.material3.Snackbar
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -36,6 +39,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
@@ -55,6 +59,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.paging.LoadState
 import app.lumadocs.kmp.data.FirebaseUser
 import app.lumadocs.kmp.icons.LumaIcons
+import app.lumadocs.kmp.platform.isOnline
 import app.lumadocs.kmp.platform.blobPath
 import app.lumadocs.kmp.services.DriveFile
 import app.lumadocs.kmp.theme.LocalLumaColors
@@ -79,6 +84,7 @@ import app.lumadocs.kmp.ui.sizedThumb
 import lumadocs.composeapp.generated.resources.Res
 import lumadocs.composeapp.generated.resources.all_documents
 import lumadocs.composeapp.generated.resources.badge_pending
+import lumadocs.composeapp.generated.resources.no_internet
 import lumadocs.composeapp.generated.resources.brand_luma_docs
 import lumadocs.composeapp.generated.resources.categories
 import lumadocs.composeapp.generated.resources.days_short
@@ -108,6 +114,7 @@ import coil3.request.ImageRequest
 import okio.Path.Companion.toPath
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
@@ -129,8 +136,26 @@ internal fun VaultScreen(
     val pending by vm.pendingUploads.collectAsStateWithLifecycle(initialValue = emptyList())
     val isUploadingPending by vm.isUploadingPending.collectAsStateWithLifecycle()
 
-    var filter by remember { mutableStateOf<DocCategory?>(null) } // null = All
-    var gridView by remember { mutableStateOf(true) }
+    // Saved, not just remembered: opening a document tears this screen out of composition, and a
+    // plain `remember` silently reset the layout back to grid (and the filter back to All) on the
+    // way back. The category is stored by key — enums aren't saveable across platforms.
+    var filterKey by rememberSaveable { mutableStateOf<String?>(null) } // null = All
+    val filter = filterKey?.let { key -> DocCategory.entries.firstOrNull { it.key == key } }
+    var gridView by rememberSaveable { mutableStateOf(true) }
+
+    val snackbarHostState = remember { SnackbarHostState() }
+    val snackScope = rememberCoroutineScope()
+    val noInternetMsg = stringResource(Res.string.no_internet)
+
+    // Pull-to-refresh with no connection sets this flag; surface it instead of failing silently.
+    LaunchedEffect(state.refreshOffline) {
+        if (state.refreshOffline) {
+            // Show first, clear after: clearing the flag flips this effect's key, which would
+            // cancel the coroutine before the snackbar ever appeared.
+            snackbarHostState.showSnackbar(noInternetMsg)
+            vm.dismissRefreshOffline()
+        }
+    }
 
     // Derived lists are memoized: re-entering the screen (back-nav) recomposes without
     // re-categorizing / re-parsing expiry dates for the whole vault.
@@ -155,7 +180,8 @@ internal fun VaultScreen(
         val loader = SingletonImageLoader.get(platformContext)
         filtered.asSequence()
             .filter {
-                it.mimeType.startsWith("image/") && !it.thumbnailLink.isNullOrBlank() &&
+                // Any type — Drive renders first-page previews for PDFs and office files too.
+                !it.thumbnailLink.isNullOrBlank() &&
                     (it.parentId == null || it.parentId !in state.folderContents)
             }
             .take(12)
@@ -230,7 +256,11 @@ internal fun VaultScreen(
                             .clip(RoundedCornerShape(16.dp))
                             .background(Brush.linearGradient(listOf(c.warn.copy(alpha = 0.14f), c.warn.copy(alpha = 0.03f))))
                             .border(1.dp, c.warn.copy(alpha = 0.28f), RoundedCornerShape(16.dp))
-                            .clickable(enabled = !isUploadingPending) { vm.uploadPending() }
+                            .clickable(enabled = !isUploadingPending) {
+                                // Offline the upload is a no-op — say so rather than looking broken.
+                                if (isOnline()) vm.uploadPending()
+                                else snackScope.launch { snackbarHostState.showSnackbar(noInternetMsg) }
+                            }
                             .padding(14.dp),
                         verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(14.dp),
                     ) {
@@ -283,9 +313,9 @@ internal fun VaultScreen(
                     SectionLabel(stringResource(Res.string.categories))
                     Spacer(Modifier.height(12.dp))
                     LazyRow(contentPadding = PaddingValues(horizontal = 20.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                        item { AllChip(active = filter == null, count = files.size, onClick = { filter = null }) }
+                        item { AllChip(active = filter == null, count = files.size, onClick = { filterKey = null }) }
                         items(DocCategory.entries.filter { (catCounts[it] ?: 0) > 0 }) { cat ->
-                            CategoryChip(category = cat, active = filter == cat, count = catCounts[cat], onClick = { filter = cat })
+                            CategoryChip(category = cat, active = filter == cat, count = catCounts[cat], onClick = { filterKey = cat.key })
                         }
                     }
                     Spacer(Modifier.height(24.dp))
@@ -380,6 +410,18 @@ internal fun VaultScreen(
                 }
             }
         }
+        }
+
+        SnackbarHost(
+            hostState = snackbarHostState,
+            modifier = Modifier.align(Alignment.BottomCenter).padding(bottom = 96.dp, start = 20.dp, end = 20.dp),
+        ) { data ->
+            Snackbar(containerColor = c.bg3, contentColor = c.text, shape = RoundedCornerShape(14.dp)) {
+                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                    Icon(LumaIcons.Cloud, null, tint = c.warn, modifier = Modifier.size(16.dp))
+                    Text(data.visuals.message, fontFamily = LumaUi, fontSize = 13.sp, color = c.text)
+                }
+            }
         }
     }
 }

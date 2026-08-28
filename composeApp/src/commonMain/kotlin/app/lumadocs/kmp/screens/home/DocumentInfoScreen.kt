@@ -147,15 +147,17 @@ fun DocumentInfoScreen(
     var showDeleteConfirm by remember { mutableStateOf(false) }
 
     val mimeLabel = remember(file.mimeType) { getMimeTypeLabel(file.mimeType) }
-    val mimeLabelText = localizedMimeLabel(file.mimeType)
     val days = expiryDaysOf(file)
-    // Images to page through when the document was uploaded as a folder of pages.
-    val imagePages = remember(pages) {
-        pages.filter { it.mimeType.startsWith("image/") }.ifEmpty { listOf(file) }
-    }
-    val pagerState = rememberPagerState { imagePages.size }
+    // Every page of the document, in order — PDFs included. Filtering to images here used to make
+    // a PDF stored alongside scans unreachable: the pager never showed it, so "open" always acted
+    // on the first image instead of the file the user came to see.
+    val docPages = remember(pages, file) { pages.ifEmpty { listOf(file) } }
+    val pagerState = rememberPagerState { docPages.size }
     // The page the user is currently viewing — what share/open act on.
-    val currentFile = imagePages.getOrNull(pagerState.currentPage) ?: file
+    val currentFile = docPages.getOrNull(pagerState.currentPage) ?: file
+    // Type, size and encryption describe the page on screen; name, category and expiry stay at the
+    // document level (that's what the edit sheet saves).
+    val mimeLabelText = localizedMimeLabel(currentFile.mimeType)
     // Images open in the app's own viewer; anything else (PDF, docs) still hands off externally.
     var viewerPage by remember { mutableStateOf<Int?>(null) }
     val openCurrent = {
@@ -187,31 +189,33 @@ fun DocumentInfoScreen(
                     Modifier.fillMaxWidth().aspectRatio(0.82f).clip(RoundedCornerShape(20.dp)).background(c.bg2).clickable { openCurrent() },
                     contentAlignment = Alignment.Center,
                 ) {
-                    if (imagePages.size > 1) {
+                    if (docPages.size > 1) {
                         // Swipeable pager over each page/image in the folder.
                         HorizontalPager(state = pagerState, modifier = Modifier.fillMaxSize()) { page ->
-                            val pf = imagePages[page]
+                            val pf = docPages[page]
                             PageImage(
                                 page = pf,
-                                localPath = localPaths[pf.id],
+                                // Only images decode from the cached file; a PDF falls back to its
+                                // Drive-rendered first-page thumbnail.
+                                localPath = localPaths[pf.id].takeIf { pf.mimeType.startsWith("image/") },
                                 fallbackBitmap = previewBitmap.takeIf { pf.id == file.id },
-                                mimeLabel = mimeLabel,
+                                mimeLabel = getMimeTypeLabel(pf.mimeType),
                             )
                         }
                         // Page counter
                         Box(Modifier.align(Alignment.TopEnd).padding(12.dp).clip(RoundedCornerShape(999.dp)).background(Color(0xB3000000)).padding(horizontal = 10.dp, vertical = 5.dp)) {
-                            Text(stringResource(Res.string.page_indicator, pagerState.currentPage + 1, imagePages.size), fontFamily = LumaMono, fontSize = 11.sp, color = Color.White)
+                            Text(stringResource(Res.string.page_indicator, pagerState.currentPage + 1, docPages.size), fontFamily = LumaMono, fontSize = 11.sp, color = Color.White)
                         }
                         // Dots
                         Row(Modifier.align(Alignment.BottomCenter).padding(bottom = 12.dp), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                            repeat(imagePages.size) { i ->
+                            repeat(docPages.size) { i ->
                                 Box(Modifier.size(if (i == pagerState.currentPage) 8.dp else 6.dp).clip(CircleShape).background(if (i == pagerState.currentPage) c.accent else Color(0x80FFFFFF)))
                             }
                         }
                     } else {
                         PageImage(
                             page = file,
-                            localPath = localPaths[file.id],
+                            localPath = localPaths[file.id].takeIf { file.mimeType.startsWith("image/") },
                             fallbackBitmap = previewBitmap,
                             mimeLabel = mimeLabel,
                             isLoading = isLoadingPreview,
@@ -228,7 +232,7 @@ fun DocumentInfoScreen(
                         Text(cat.localizedLabel(), fontFamily = LumaUi, fontSize = 13.5.sp, color = c.text)
                     }
                 }
-                MetaRow(stringResource(Res.string.meta_type)) { Text("$mimeLabelText · ${formatSizeLocalized(file.size)}", fontFamily = LumaUi, fontSize = 13.5.sp, color = c.text) }
+                MetaRow(stringResource(Res.string.meta_type)) { Text("$mimeLabelText · ${formatSizeLocalized(currentFile.size)}", fontFamily = LumaUi, fontSize = 13.5.sp, color = c.text) }
                 if (!file.expiryDate.isNullOrBlank()) {
                     MetaRow(stringResource(Res.string.meta_expires), isLast = file.encrypted.not()) {
                         Row(verticalAlignment = Alignment.CenterVertically) {
@@ -238,7 +242,7 @@ fun DocumentInfoScreen(
                     }
                 }
                 MetaRow(stringResource(Res.string.meta_security), isLast = true) {
-                    Text(stringResource(if (file.encrypted) Res.string.encrypted_aes else Res.string.not_encrypted), fontFamily = LumaUi, fontSize = 13.5.sp, color = if (file.encrypted) c.accentHi else c.textDim)
+                    Text(stringResource(if (currentFile.encrypted) Res.string.encrypted_aes else Res.string.not_encrypted), fontFamily = LumaUi, fontSize = 13.5.sp, color = if (file.encrypted) c.accentHi else c.textDim)
                 }
             }
 
@@ -278,7 +282,7 @@ fun DocumentInfoScreen(
 
     viewerPage?.let { start ->
         FullscreenPageViewer(
-            pages = imagePages,
+            pages = docPages,
             localPaths = localPaths,
             startPage = start,
             fallbackBitmap = previewBitmap,

@@ -216,7 +216,9 @@ class DocumentsViewModel : ViewModel(), KoinComponent {
             if (!isOnline()) return@launch
             val targets = (grouped.display + grouped.folderContents.values.flatten())
                 .distinctBy { it.id }
-                .filter { (it.size ?: 0L) <= PreviewCache.MAX_BYTES }
+                // Unknown size counts as too big: better to skip a background warm-up than to
+                // pull an unbounded file into memory for it.
+                .filter { (it.size ?: Long.MAX_VALUE) <= PreviewCache.MAX_BYTES }
                 .take(MAX_PREFETCH)
             for (f in targets) {
                 // Cheap existence check — don't read megabytes back just to test for a hit.
